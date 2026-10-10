@@ -6,10 +6,16 @@ private:
     int n;
     vector<int> tree, lazy; // 区间和、尚未下传的加法标记
 
-    // 向上合并：用两个子区间的和更新当前节点
+    // 合并两个区间的结果：参数 a、b 为各自区间和，返回合并后的和
+    int merge(int a, int b)
+    {
+        return a + b;
+    }
+
+    // 向上合并：通过 merge 用两个子节点的结果更新节点 p
     void pushup(int p)
     {
-        tree[p] = tree[p * 2] + tree[p * 2 + 1];
+        tree[p] = merge(tree[p * 2], tree[p * 2 + 1]);
     }
 
     // 建树：节点 p 管理闭区间 [l,r]
@@ -83,9 +89,9 @@ private:
         int m = (l + r) / 2;
         int sum = 0;
         if (ql <= m)
-            sum += query(p * 2, l, m, ql, qr);
+            sum = merge(sum, query(p * 2, l, m, ql, qr));
         if (qr > m)
-            sum += query(p * 2 + 1, m + 1, r, ql, qr);
+            sum = merge(sum, query(p * 2 + 1, m + 1, r, ql, qr));
         return sum;
     }
 
@@ -128,10 +134,16 @@ private:
     int n;
     vector<int> tree; // 区间和
 
-    // 向上合并：用两个子区间的和更新当前节点
+    // 合并两个区间的结果：参数 a、b 为各自区间和，返回合并后的和
+    int merge(int a, int b)
+    {
+        return a + b;
+    }
+
+    // 向上合并：通过 merge 用两个子节点的结果更新节点 p
     void pushup(int p)
     {
-        tree[p] = tree[p * 2] + tree[p * 2 + 1];
+        tree[p] = merge(tree[p * 2], tree[p * 2 + 1]);
     }
 
     // 建树：节点 p 管理闭区间 [l,r]
@@ -188,9 +200,9 @@ private:
         int m = (l + r) / 2;
         int sum = 0;
         if (ql <= m)
-            sum += query(p * 2, l, m, ql, qr);
+            sum = merge(sum, query(p * 2, l, m, ql, qr));
         if (qr > m)
-            sum += query(p * 2 + 1, m + 1, r, ql, qr);
+            sum = merge(sum, query(p * 2 + 1, m + 1, r, ql, qr));
         return sum;
     }
 

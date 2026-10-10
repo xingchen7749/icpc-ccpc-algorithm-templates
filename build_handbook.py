@@ -43,6 +43,7 @@ def render_code_links(text, prefix=''):
         text = text.replace(f'{{{{code-link:{key}}}}}', f'[完整代码：{path.name}]({target})')
     return text
 DEPS = {
+    'kruskal': ('dsu', ['init', 'find', 'merge']),
     'fermat': ('qpow', ['qpow']),
     'comb': ('qpow', ['qpow']),
     'ntt': ('qpow', ['qpow']),
@@ -80,6 +81,9 @@ def algorithm_blocks(key, emitted=None, active=None):
     return result
 
 def standalone_source(key):
+    if 'solve' in BY_KEY.get(key, {}):
+        main = 'signed main()' + ENTRYPOINT.split('signed main()', 1)[1]
+        return PRELUDE.rstrip() + '\n\n' + algorithm_blocks(key) + BY_KEY[key]['solve'] + '\n\n' + main + '\n'
     if key in ('lazyseg', 'segtree'):
         item = BY_KEY['lazyseg']
         body = item['code'] if key == 'lazyseg' else item['variants'][0]['code']

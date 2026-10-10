@@ -5,25 +5,36 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
-struct DSU {
-    vector<int> p, sz;
-    // 初始化编号 1..n 的 n 个独立集合，0 号位置不用；时间和空间 O(n)。
-    DSU(int n): p(n+1), sz(n+1,1) { iota(p.begin(),p.end(),0); }
-    // 返回元素 x 所在集合的代表元，并用路径压缩缩短查找路径；要求 1<=x<=n。
-    int find(int x) {
-        while (x != p[x]) { p[x] = p[p[x]]; x = p[x]; }
-        return x;
+vector<int> father, rk;
+
+// 初始化编号 1..n 的独立集合，初始秩为 1；时间和空间 O(n)。
+void init(int n) {
+    father.resize(n + 1);
+    rk.assign(n + 1, 1);
+    for (int i = 1; i <= n; ++i) father[i] = i;
+}
+
+// 返回 id 所在集合的根，并通过递归压缩路径；要求 1<=id<=n。
+int find(int id) {
+    if (id != father[id]) {
+        father[id] = find(father[id]);
     }
-    // 按集合大小合并 a、b 所在集合；成功合并返回 true，原本同集合返回 false。
-    // 会修改父指针和集合大小，配合路径压缩均摊 O(α(n))。
-    bool merge(int a, int b) {
-        a=find(a); b=find(b); if (a==b) return false;
-        if (sz[a]<sz[b]) swap(a,b);
-        p[b]=a; sz[a]+=sz[b]; return true;
+    return father[id];
+}
+
+// 按秩合并 u、v 所在集合；成功返回 true，原本同集合返回 false。
+// 要求顶点为 1..n；配合路径压缩，均摊时间 O(α(n))。
+bool merge(int u, int v) {
+    int a = find(u), b = find(v);
+    if (a == b) return false;
+    if (rk[a] > rk[b]) father[b] = a;
+    else if (rk[b] > rk[a]) father[a] = b;
+    else {
+        father[b] = a;
+        rk[a]++;
     }
-    // 返回 x 所在连通块的元素数，查找时可能压缩路径；要求 x 为有效元素。
-    int size(int x) { return sz[find(x)]; }
-};
+    return true;
+}
 
 void solve() {
     // Read one test case. Arrays and vertices use 1..n.

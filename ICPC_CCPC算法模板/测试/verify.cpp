@@ -34,7 +34,10 @@ void basics(){
 }
 
 void structures(){
-    cp_dsu::DSU d(5);CHECK(d.merge(1,5));CHECK(!d.merge(1,5));CHECK(d.size(5)==2);
+    cp_dsu::init(5);CHECK(cp_dsu::merge(1,5));CHECK(!cp_dsu::merge(1,5));
+    CHECK(cp_dsu::find(1)==cp_dsu::find(5));CHECK(cp_dsu::find(1)!=cp_dsu::find(2));
+    cp_dsu::init(1);CHECK(!cp_dsu::merge(1,1));
+    cp_dsu::init(7);for(int i=1;i<=7;++i)CHECK(cp_dsu::find(i)==i);
     cp_rollback::RollbackDSU rb(5);rb.merge(1,5);int snap=rb.snapshot();
     rb.merge(5,2);rb.merge(1,2);CHECK(rb.find(1)==rb.find(2));rb.rollback(snap);
     CHECK(rb.find(1)!=rb.find(2));CHECK(rb.sz[rb.find(1)]==2);rb.rollback(0);
