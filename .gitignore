@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+/tmp/
+*.exe
+*.o
+*.obj
+*.out
+.env
+.env.*
+!.env.example
