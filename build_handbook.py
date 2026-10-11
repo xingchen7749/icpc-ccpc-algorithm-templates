@@ -42,6 +42,32 @@ def render_code_links(text, prefix=''):
         target = quote(prefix + '代码/' + path.as_posix(), safe='/')
         text = text.replace(f'{{{{code-link:{key}}}}}', f'[完整代码：{path.name}]({target})')
     return text
+
+def implementation_sections(chapter_number, item_number, item):
+    """Share implementation titles and stable anchors between contents and body."""
+    prefix = f'{chapter_number}.{item_number}'
+    sections = []
+    title = item.get('subsection_title') or item.get('code_title')
+    if title:
+        if item.get('numbered_subsections'):
+            title = f'{prefix}.1 {title}'
+        sections.append((title, f'algorithm-{item["key"]}-1'))
+    for index, variant in enumerate(item.get('variants', []), 2):
+        title = variant['title']
+        if item.get('numbered_subsections'):
+            title = f'{prefix}.{index} {title}'
+        sections.append((title, f'algorithm-{item["key"]}-{index}'))
+    return sections
+
+def algorithm_contents(chapter_number, items):
+    """List every entry and implementation without chapter-only navigation."""
+    lines = []
+    for j, item in enumerate(items, 1):
+        lines.append(f'- [{chapter_number}.{j} {item["title"]}](#algorithm-{item["key"]})')
+        for title, anchor in implementation_sections(chapter_number, j, item):
+            lines.append(f'  - [{title}](#{anchor})')
+    return '\n'.join(lines) + '\n'
+
 DEPS = {
     'kruskal': ('dsu', ['init', 'find', 'merge']),
     'fermat': ('qpow', ['qpow']),
@@ -138,38 +164,40 @@ def main():
           '- `代码/` 按本手册章节分目录，文件名为“章节序号 算法标题.cpp”；Windows 不允许的文件名字符改用全角字符。每份算法均带完整起手式及展开的依赖，直接使用全局函数或类名，在 `solve()` 中写题并单独编译；不包含其他算法文件。手册代码片段省略起手式。\n',
           '## 目录\n']
     for i,(chapter,items) in enumerate(groups.items(),1):
-        full.append(f'- [{i}. {chapter}](#{"chapter-"+str(i)})（{len(items)} 项）\n')
+        full.append(f'- [{i}. {chapter}](#chapter-{i})（{len(items)} 项）\n' +
+                    '\n'.join('  ' + line for line in algorithm_contents(i, items).splitlines()) + '\n')
     headers=[]
     for i,(chapter,items) in enumerate(groups.items(),1):
         chunk=[f'<a id="chapter-{i}"></a>\n\n# {i}. {chapter}\n']
         for j,e in enumerate(items,1):
             key=e['key']
-            chunk.append(f'\n## {i}.{j} {e["title"]}\n')
+            sections = dict((anchor, title) for title, anchor in implementation_sections(i, j, e))
+            chunk.append(f'\n<a id="algorithm-{key}"></a>\n\n## {i}.{j} {e["title"]}\n')
             if key not in ('lazyseg', 'modular'):
                 chunk.append('{{code-link:' + key + '}}\n')
             if e.get('intro'):
                 chunk.append(e['intro'])
             if e.get('numbered_subsections'):
-                chunk.append(f'### {i}.{j}.1 {e["code_title"]}\n')
+                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
                 if key == 'lazyseg':
                     chunk.append('{{code-link:lazyseg}}\n')
             if e.get('subsection_title'):
-                chunk.append(f'### {e["subsection_title"]}\n')
+                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
                 if key == 'modular':
                     chunk.append('{{code-link:fermat}}\n')
             chunk.extend([f'**用途与条件**：{e["use"]}\n',
                           f'**复杂度**：{e["cost"]}\n',
                           f'**易错点**：{e["pitfalls"]}\n'])
             if e.get('code_title') and not e.get('numbered_subsections'):
-                chunk.append(f'### {e["code_title"]}\n')
+                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
             chunk.extend([
                           f'```cpp\n{e["code"]}\n```\n',
                           f'**调用与说明**：{e["example"]}\n'])
             if e.get('code_after'):
                 chunk.append(e['code_after'])
             for variant_index, variant in enumerate(e.get('variants', []), 2):
-                number = f'{i}.{j}.{variant_index} ' if e.get('numbered_subsections') else ''
-                chunk.append(f'### {number}{variant["title"]}\n')
+                anchor = f'algorithm-{key}-{variant_index}'
+                chunk.append(f'<a id="{anchor}"></a>\n\n### {sections[anchor]}\n')
                 if key == 'lazyseg':
                     chunk.append('{{code-link:segtree}}\n')
                 if key == 'modular':
@@ -196,7 +224,10 @@ def main():
                 (OUT/'代码'/CODE_PATHS['fermat']).write_text(standalone_source('fermat'), encoding='utf-8')
                 headers.append(CODE_PATHS['fermat'].as_posix())
         content=render_code_paths('\n'.join(chunk))
-        (OUT/f'章节/{i:02d}_{chapter}.md').write_text(render_code_links(content, '../'),encoding='utf-8')
+        chapter_content = render_code_paths('\n'.join([
+            chunk[0], '## 本章算法目录\n', algorithm_contents(i, items), *chunk[1:]
+        ]))
+        (OUT/f'章节/{i:02d}_{chapter}.md').write_text(render_code_links(chapter_content, '../'),encoding='utf-8')
         full.append(content)
     appendix=(ROOT/'appendix.md').read_text(encoding='utf-8')
     full.append(appendix)
