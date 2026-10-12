@@ -33,9 +33,7 @@ struct Aho {
     void build() {
         queue<int> q;
         for (int v : t[0].go) {
-            if (v) {
-                q.push(v);
-            }
+            if (v) q.push(v);
         }
         while (!q.empty()) {
             int u = q.front();

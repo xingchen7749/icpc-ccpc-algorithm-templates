@@ -67,9 +67,7 @@ struct SAM {
         // 按状态最大长度降序排序，使出现次数先从较长状态传给较短的后缀链接目标。
         sort(ord.begin(), ord.end(), [&](int a, int b) { return t[a].len > t[b].len; });
         vector<i64> cnt;
-        for (auto& v : t) {
-            cnt.push_back(v.cnt);
-        }
+        for (auto& v : t) cnt.push_back(v.cnt);
         for (int v : ord) {
             if (t[v].link != -1) {
                 cnt[t[v].link] += cnt[v];

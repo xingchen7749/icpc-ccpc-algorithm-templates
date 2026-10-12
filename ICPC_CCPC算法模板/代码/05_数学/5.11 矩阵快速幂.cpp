@@ -28,9 +28,7 @@ Matrix matrix_power(Matrix a, u64 e, i64 mod) {
     assert(mod > 0);
     int n = (int)a.size() - 1;
     Matrix r(n + 1, vector<i64>(n + 1));
-    for (int i = 1; i <= n; ++i) {
-        r[i][i] = 1 % mod;
-    }
+    for (int i = 1; i <= n; ++i) r[i][i] = 1 % mod;
     for (; e; e >>= 1, a = multiply(a, a, mod)) {
         if (e & 1) {
             r = multiply(r, a, mod);

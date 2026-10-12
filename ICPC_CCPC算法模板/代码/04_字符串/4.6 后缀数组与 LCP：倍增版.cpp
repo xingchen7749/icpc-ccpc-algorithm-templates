@@ -15,9 +15,7 @@ struct SuffixArray {
         rk.resize(n);
         lcp.assign(n, 0);
         iota(sa.begin(), sa.end(), 0);
-        for (int i = 0; i < n; ++i) {
-            rk[i] = (unsigned char)s[i];
-        }
+        for (int i = 0; i < n; ++i) rk[i] = (unsigned char)s[i];
         vector<int> tmp(n);
         for (int k = 1; k < n; k *= 2) {
             // 读取当前轮位置 i 的排名，超过字符串末尾时返回 -1，作为缺失后半段的最小排名。
@@ -34,9 +32,7 @@ struct SuffixArray {
             rk = tmp;
             if (rk[sa.back()] == n - 1) break;
         }
-        for (int i = 0; i < n; ++i) {
-            rk[sa[i]] = i;
-        }
+        for (int i = 0; i < n; ++i) rk[sa[i]] = i;
         for (int i = 0, h = 0; i < n; ++i) {
             if (rk[i] == 0) {
                 h = 0;
@@ -47,9 +43,7 @@ struct SuffixArray {
                 ++h;
             }
             lcp[rk[i]] = h;
-            if (h) {
-                --h;
-            }
+            if (h) --h;
         }
     }
 };

@@ -12,9 +12,7 @@ vector<int> lis_indices(const vector<i64>& a) {
     vector<int> at, pre(a.size(), -1);
     for (int i = 1; i < (int)a.size(); ++i) {
         int k = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
-        if (k) {
-            pre[i] = at[k - 1];
-        }
+        if (k) pre[i] = at[k - 1];
         if (k == (int)tail.size()) {
             tail.push_back(a[i]);
             at.push_back(i);
@@ -25,9 +23,7 @@ vector<int> lis_indices(const vector<i64>& a) {
     }
     vector<int> ans;
     if (at.empty()) return ans;
-    for (int i = at.back(); i != -1; i = pre[i]) {
-        ans.push_back(i);
-    }
+    for (int i = at.back(); i != -1; i = pre[i]) ans.push_back(i);
     reverse(ans.begin(), ans.end());
     return ans;
 }

@@ -21,9 +21,7 @@ public:
         int K = log2((double)n) + 1;
         st.assign(n + 1, vector<int>(K));
 
-        for (int i = 1; i <= n; ++i) {
-            st[i][0] = a[i];
-        }
+        for (int i = 1; i <= n; ++i) st[i][0] = a[i];
 
         for (int j = 1; j < K; ++j) {
             for (int i = 1; i + (1LL << j) - 1 <= n; ++i) {

@@ -8,9 +8,7 @@ using u64 = unsigned long long;
 // 返回 10^k，用于编译期计算分块基数；要求 0<=k<=9。
 constexpr int power10(int k) {
     int result = 1;
-    while (k--) {
-        result *= 10;
-    }
+    while (k--) result *= 10;
     return result;
 }
 
@@ -49,9 +47,7 @@ struct big_int {
 
     // 删除最高端多余的零块，至少保留一块表示 0。
     void trim() {
-        while (arr.size() > 1 && arr.back() == 0) {
-            arr.pop_back();
-        }
+        while (arr.size() > 1 && arr.back() == 0) arr.pop_back();
     }
 
     // 判断当前整数是否为 0。
@@ -104,9 +100,7 @@ big_int jian(const big_int& a, const big_int& b) {
         int y = i < b.size() ? b.arr[i] : 0;
         int cur = a.arr[i] - y - borrow;
         borrow = cur < 0;
-        if (borrow) {
-            cur += big_int::base;
-        }
+        if (borrow) cur += big_int::base;
         result.arr[i] = cur;
     }
     result.trim();

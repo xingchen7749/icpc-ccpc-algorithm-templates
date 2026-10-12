@@ -47,13 +47,9 @@ void ntt(vector<int>& a, bool inv) {
             for (int j = 0; j < len / 2; ++j) {
                 int u = a[i + j], v = 1LL * a[i + j + len / 2] * w % MOD;
                 a[i + j] = u + v;
-                if (a[i + j] >= MOD) {
-                    a[i + j] -= MOD;
-                }
+                if (a[i + j] >= MOD) a[i + j] -= MOD;
                 a[i + j + len / 2] = u - v;
-                if (a[i + j + len / 2] < 0) {
-                    a[i + j + len / 2] += MOD;
-                }
+                if (a[i + j + len / 2] < 0) a[i + j + len / 2] += MOD;
                 w = 1LL * w * wlen % MOD;
             }
         }
@@ -71,9 +67,7 @@ void ntt(vector<int>& a, bool inv) {
 vector<int> convolution(vector<int> a, vector<int> b) {
     if (a.empty() || b.empty()) return {};
     int need = a.size() + b.size() - 1, n = 1;
-    while (n < need) {
-        n <<= 1;
-    }
+    while (n < need) n <<= 1;
     assert(n <= (1 << 23));
     a.resize(n);
     b.resize(n);

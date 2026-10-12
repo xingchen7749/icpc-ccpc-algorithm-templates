@@ -162,9 +162,7 @@ vector<i64> window_min(const vector<i64>& a, int k) {
             q.pop_back();
         }
         q.push_back(i);
-        if (i >= k) {
-            ans.push_back(a[q.front()]);
-        }
+        if (i >= k) ans.push_back(a[q.front()]);
     }
     return ans;
 }
@@ -209,16 +207,12 @@ vector<int> father, rk;
 void init(int n) {
     father.resize(n + 1);
     rk.assign(n + 1, 1);
-    for (int i = 1; i <= n; ++i) {
-        father[i] = i;
-    }
+    for (int i = 1; i <= n; ++i) father[i] = i;
 }
 
 // 返回 id 所在集合的根，并通过递归压缩路径；要求 1<=id<=n。
 int find(int id) {
-    if (id != father[id]) {
-        father[id] = find(father[id]);
-    }
+    if (id != father[id]) father[id] = find(father[id]);
     return father[id];
 }
 
@@ -256,9 +250,7 @@ struct RollbackDSU {
     }
     // 沿父指针返回 x 的代表元，不压缩路径以便回滚；时间 O(log n)。
     int find(int x) {
-        while (x != p[x]) {
-            x = p[x];
-        }
+        while (x != p[x]) x = p[x];
         return x;
     }
     // 返回当前成功合并历史的长度，作为之后 rollback 的快照；不修改状态，O(1)。
@@ -324,9 +316,7 @@ struct Fenwick {
     int kth(i64 k) const {
         assert(1 <= k && k <= sum(n));
         int x = 0, step = 1;
-        while (step <= n / 2) {
-            step <<= 1;
-        }
+        while (step <= n / 2) step <<= 1;
         for (; step; step >>= 1) {
             int y = x + step;
             if (y <= n && t[y] < k) {
@@ -363,9 +353,7 @@ public:
         int K = log2((double)n) + 1;
         st.assign(n + 1, vector<int>(K));
 
-        for (int i = 1; i <= n; ++i) {
-            st[i][0] = a[i];
-        }
+        for (int i = 1; i <= n; ++i) st[i][0] = a[i];
 
         for (int j = 1; j < K; ++j) {
             for (int i = 1; i + (1LL << j) - 1 <= n; ++i) {
@@ -847,30 +835,18 @@ vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>
     int l = 1, r = 0, cur = 0;
     // 把位置 i 纳入当前窗口，更新其频数；该值首次出现时增加不同值计数 cur。
     auto add = [&](int i) {
-        if (cnt[a[i]]++ == 0) {
-            ++cur;
-        }
+        if (cnt[a[i]]++ == 0) ++cur;
     };
     // 把当前窗口内的位置 i 移出，更新其频数；该值不再出现时减少 cur。
     auto del = [&](int i) {
-        if (--cnt[a[i]] == 0) {
-            --cur;
-        }
+        if (--cnt[a[i]] == 0) --cur;
     };
     for (int id : ord) {
         auto [L, R] = ranges[id];
-        while (l > L) {
-            add(--l);
-        }
-        while (r < R) {
-            add(++r);
-        }
-        while (l < L) {
-            del(l++);
-        }
-        while (r > R) {
-            del(r--);
-        }
+        while (l > L) add(--l);
+        while (r < R) add(++r);
+        while (l < L) del(l++);
+        while (r > R) del(r--);
         ans[id] = cur;
     }
     return ans;
@@ -1106,23 +1082,17 @@ vector<int> topo_sort(const vector<vector<int>>& g) {
     vector<int> deg(n + 1), ans;
     queue<int> q;
     for (auto& es : g) {
-        for (int v : es) {
-            ++deg[v];
-        }
+        for (int v : es) ++deg[v];
     }
     for (int i = 1; i <= n; ++i) {
-        if (!deg[i]) {
-            q.push(i);
-        }
+        if (!deg[i]) q.push(i);
     }
     while (!q.empty()) {
         int u = q.front();
         q.pop();
         ans.push_back(u);
         for (int v : g[u]) {
-            if (--deg[v] == 0) {
-                q.push(v);
-            }
+            if (--deg[v] == 0) q.push(v);
         }
     }
     return ans;
@@ -1303,9 +1273,7 @@ struct TarjanSCC {
         comp.assign(n + 1, -1);
         in_stack.assign(n + 1, 0);
         for (int u = 1; u <= n; ++u) {
-            if (!dfn[u]) {
-                dfs(u);
-            }
+            if (!dfn[u]) dfs(u);
         }
     }
 };
@@ -1428,9 +1396,7 @@ struct LowLink {
     // 应在全部边添加完后调用一次；本实现不清空旧状态，修改图后需重建对象。
     void build() {
         for (int i = 1; i <= n; ++i) {
-            if (!dfn[i]) {
-                dfs(i, -1);
-            }
+            if (!dfn[i]) dfs(i, -1);
         }
     }
 };
@@ -1855,9 +1821,7 @@ vector<int> prefix_function(const string& s) {
         while (j && s[i] != s[j]) {
             j = pi[j - 1];
         }
-        if (s[i] == s[j]) {
-            ++j;
-        }
+        if (s[i] == s[j]) ++j;
         pi[i] = j;
     }
     return pi;
@@ -1877,9 +1841,7 @@ vector<int> kmp(const string& text, const string& p) {
         while (j && text[i] != p[j]) {
             j = pi[j - 1];
         }
-        if (text[i] == p[j]) {
-            ++j;
-        }
+        if (text[i] == p[j]) ++j;
         if (j == (int)p.size()) {
             ans.push_back(i - j + 1);
             j = pi[j - 1];
@@ -1902,9 +1864,7 @@ add('字符串',
 vector<int> z_function(const string& s) {
     int n = s.size();
     vector<int> z(n);
-    if (n) {
-        z[0] = n;
-    }
+    if (n) z[0] = n;
     for (int i = 1, l = 0, r = 0; i < n; ++i) {
         if (i < r) {
             z[i] = min(r - i, z[i - l]);
@@ -2028,9 +1988,7 @@ struct Aho {
     void build() {
         queue<int> q;
         for (int v : t[0].go) {
-            if (v) {
-                q.push(v);
-            }
+            if (v) q.push(v);
         }
         while (!q.empty()) {
             int u = q.front();
@@ -2084,9 +2042,7 @@ struct SuffixArray {
         rk.resize(n);
         lcp.assign(n, 0);
         iota(sa.begin(), sa.end(), 0);
-        for (int i = 0; i < n; ++i) {
-            rk[i] = (unsigned char)s[i];
-        }
+        for (int i = 0; i < n; ++i) rk[i] = (unsigned char)s[i];
         vector<int> tmp(n);
         for (int k = 1; k < n; k *= 2) {
             // 读取当前轮位置 i 的排名，超过字符串末尾时返回 -1，作为缺失后半段的最小排名。
@@ -2103,9 +2059,7 @@ struct SuffixArray {
             rk = tmp;
             if (rk[sa.back()] == n - 1) break;
         }
-        for (int i = 0; i < n; ++i) {
-            rk[sa[i]] = i;
-        }
+        for (int i = 0; i < n; ++i) rk[sa[i]] = i;
         for (int i = 0, h = 0; i < n; ++i) {
             if (rk[i] == 0) {
                 h = 0;
@@ -2116,9 +2070,7 @@ struct SuffixArray {
                 ++h;
             }
             lcp[rk[i]] = h;
-            if (h) {
-                --h;
-            }
+            if (h) --h;
         }
     }
 };
@@ -2194,9 +2146,7 @@ struct SAM {
         // 按状态最大长度降序排序，使出现次数先从较长状态传给较短的后缀链接目标。
         sort(ord.begin(), ord.end(), [&](int a, int b) { return t[a].len > t[b].len; });
         vector<i64> cnt;
-        for (auto& v : t) {
-            cnt.push_back(v.cnt);
-        }
+        for (auto& v : t) cnt.push_back(v.cnt);
         for (int v : ord) {
             if (t[v].link != -1) {
                 cnt[t[v].link] += cnt[v];
@@ -2229,14 +2179,10 @@ int min_rotation(const string& s) {
         }
         if (t[i + k] > t[j + k]) {
             i += k + 1;
-            if (i == j) {
-                ++i;
-            }
+            if (i == j) ++i;
         } else {
             j += k + 1;
-            if (i == j) {
-                ++j;
-            }
+            if (i == j) ++j;
         }
         k = 0;
     }
@@ -2323,9 +2269,7 @@ optional<i64> inverse(i64 a, i64 m) {
     i128 x, y;
     if (exgcd(norm(a, m), m, x, y) != 1) return nullopt;
     x %= m;
-    if (x < 0) {
-        x += m;
-    }
+    if (x < 0) x += m;
     return (i64)x;
 }
 ''',
@@ -2456,22 +2400,16 @@ struct CRTResult {
 CRTResult crt_merge(i64 a, i64 m, i64 b, i64 n) {
     assert(m > 0 && n > 0);
     a %= m;
-    if (a < 0) {
-        a += m;
-    }
+    if (a < 0) a += m;
     b %= n;
-    if (b < 0) {
-        b += n;
-    }
+    if (b < 0) b += n;
     i128 x, y;
     i64 g = exgcd(m, n, x, y);
     i128 diff = i128(b) - a;
     if (diff % g) return {0, 0, 0};
     i128 mod = n / g;
     i128 t = (diff / g * x) % mod;
-    if (t < 0) {
-        t += mod;
-    }
+    if (t < 0) t += mod;
     i128 lcm = i128(m / g) * n;
     if (lcm > LLONG_MAX) return {2, 0, 0};
     i128 r = (i128(a) + i128(m) * t) % lcm;
@@ -2629,13 +2567,9 @@ void ntt(vector<int>& a, bool inv) {
             for (int j = 0; j < len / 2; ++j) {
                 int u = a[i + j], v = 1LL * a[i + j + len / 2] * w % MOD;
                 a[i + j] = u + v;
-                if (a[i + j] >= MOD) {
-                    a[i + j] -= MOD;
-                }
+                if (a[i + j] >= MOD) a[i + j] -= MOD;
                 a[i + j + len / 2] = u - v;
-                if (a[i + j + len / 2] < 0) {
-                    a[i + j + len / 2] += MOD;
-                }
+                if (a[i + j + len / 2] < 0) a[i + j + len / 2] += MOD;
                 w = 1LL * w * wlen % MOD;
             }
         }
@@ -2653,9 +2587,7 @@ void ntt(vector<int>& a, bool inv) {
 vector<int> convolution(vector<int> a, vector<int> b) {
     if (a.empty() || b.empty()) return {};
     int need = a.size() + b.size() - 1, n = 1;
-    while (n < need) {
-        n <<= 1;
-    }
+    while (n < need) n <<= 1;
     assert(n <= (1 << 23));
     a.resize(n);
     b.resize(n);
@@ -2758,9 +2690,7 @@ Matrix matrix_power(Matrix a, u64 e, i64 mod) {
     assert(mod > 0);
     int n = (int)a.size() - 1;
     Matrix r(n + 1, vector<i64>(n + 1));
-    for (int i = 1; i <= n; ++i) {
-        r[i][i] = 1 % mod;
-    }
+    for (int i = 1; i <= n; ++i) r[i][i] = 1 % mod;
     for (; e; e >>= 1, a = multiply(a, a, mod)) {
         if (e & 1) {
             r = multiply(r, a, mod);
@@ -2857,9 +2787,7 @@ void fft(vector<cd>& a, bool inv) {
         }
     }
     if (inv) {
-        for (cd& x : a) {
-            x /= n;
-        }
+        for (cd& x : a) x /= n;
     }
 }
 // 返回实系数多项式 a、b 的近似卷积，系数按次数从 0 编号；空输入返回空数组。
@@ -2868,9 +2796,7 @@ void fft(vector<cd>& a, bool inv) {
 vector<double> convolution(const vector<double>& a, const vector<double>& b) {
     if (a.empty() || b.empty()) return {};
     int need = a.size() + b.size() - 1, n = 1;
-    while (n < need) {
-        n <<= 1;
-    }
+    while (n < need) n <<= 1;
     vector<cd> x(n), y(n);
     copy(a.begin(), a.end(), x.begin());
     copy(b.begin(), b.end(), y.begin());
@@ -2881,9 +2807,7 @@ vector<double> convolution(const vector<double>& a, const vector<double>& b) {
     }
     fft(x, true);
     vector<double> ans(need);
-    for (int i = 0; i < need; ++i) {
-        ans[i] = x[i].real();
-    }
+    for (int i = 0; i < need; ++i) ans[i] = x[i].real();
     return ans;
 }
 ''',
@@ -2975,9 +2899,7 @@ add('数学',
 // 返回 10^k，用于编译期计算分块基数；要求 0<=k<=9。
 constexpr int power10(int k) {
     int result = 1;
-    while (k--) {
-        result *= 10;
-    }
+    while (k--) result *= 10;
     return result;
 }
 
@@ -3016,9 +2938,7 @@ struct big_int {
 
     // 删除最高端多余的零块，至少保留一块表示 0。
     void trim() {
-        while (arr.size() > 1 && arr.back() == 0) {
-            arr.pop_back();
-        }
+        while (arr.size() > 1 && arr.back() == 0) arr.pop_back();
     }
 
     // 判断当前整数是否为 0。
@@ -3071,9 +2991,7 @@ big_int jian(const big_int& a, const big_int& b) {
         int y = i < b.size() ? b.arr[i] : 0;
         int cur = a.arr[i] - y - borrow;
         borrow = cur < 0;
-        if (borrow) {
-            cur += big_int::base;
-        }
+        if (borrow) cur += big_int::base;
         result.arr[i] = cur;
     }
     result.trim();
@@ -3255,9 +3173,7 @@ vector<int> lis_indices(const vector<i64>& a) {
     vector<int> at, pre(a.size(), -1);
     for (int i = 1; i < (int)a.size(); ++i) {
         int k = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
-        if (k) {
-            pre[i] = at[k - 1];
-        }
+        if (k) pre[i] = at[k - 1];
         if (k == (int)tail.size()) {
             tail.push_back(a[i]);
             at.push_back(i);
@@ -3268,9 +3184,7 @@ vector<int> lis_indices(const vector<i64>& a) {
     }
     vector<int> ans;
     if (at.empty()) return ans;
-    for (int i = at.back(); i != -1; i = pre[i]) {
-        ans.push_back(i);
-    }
+    for (int i = at.back(); i != -1; i = pre[i]) ans.push_back(i);
     reverse(ans.begin(), ans.end());
     return ans;
 }
@@ -3526,9 +3440,7 @@ vector<i64> divide_dp_layer(const vector<i64>& prev, Cost cost) {
         go(l, mid - 1, optL, best);
         go(mid + 1, r, best, optR);
     };
-    if (n) {
-        go(1, n, 0, n - 1);
-    }
+    if (n) go(1, n, 0, n - 1);
     return cur;
 }
 ''',
@@ -3736,9 +3648,7 @@ vector<P> clip_halfplane(const vector<P>& poly, P a, P b) {
         P p = poly[i], q = poly[(i + 1) % n];
         ld dp = cross(v, p - a), dq = cross(v, q - a);
         bool ip = dp >= -EPS, iq = dq >= -EPS;
-        if (ip) {
-            out.push_back(p);
-        }
+        if (ip) out.push_back(p);
         if (ip != iq) {
             // Classification uses EPS; clamp near-boundary interpolation.
             ld t = dp / (dp - dq);

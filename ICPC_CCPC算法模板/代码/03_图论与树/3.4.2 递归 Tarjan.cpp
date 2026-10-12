@@ -52,9 +52,7 @@ struct TarjanSCC {
         comp.assign(n + 1, -1);
         in_stack.assign(n + 1, 0);
         for (int u = 1; u <= n; ++u) {
-            if (!dfn[u]) {
-                dfs(u);
-            }
+            if (!dfn[u]) dfs(u);
         }
     }
 };

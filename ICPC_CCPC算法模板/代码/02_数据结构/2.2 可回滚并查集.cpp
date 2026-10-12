@@ -14,9 +14,7 @@ struct RollbackDSU {
     }
     // 沿父指针返回 x 的代表元，不压缩路径以便回滚；时间 O(log n)。
     int find(int x) {
-        while (x != p[x]) {
-            x = p[x];
-        }
+        while (x != p[x]) x = p[x];
         return x;
     }
     // 返回当前成功合并历史的长度，作为之后 rollback 的快照；不修改状态，O(1)。

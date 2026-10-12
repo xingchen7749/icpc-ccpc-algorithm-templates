@@ -33,9 +33,7 @@ struct Fenwick {
     int kth(i64 k) const {
         assert(1 <= k && k <= sum(n));
         int x = 0, step = 1;
-        while (step <= n / 2) {
-            step <<= 1;
-        }
+        while (step <= n / 2) step <<= 1;
         for (; step; step >>= 1) {
             int y = x + step;
             if (y <= n && t[y] < k) {

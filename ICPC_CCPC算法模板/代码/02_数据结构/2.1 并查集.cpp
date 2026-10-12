@@ -11,16 +11,12 @@ vector<int> father, rk;
 void init(int n) {
     father.resize(n + 1);
     rk.assign(n + 1, 1);
-    for (int i = 1; i <= n; ++i) {
-        father[i] = i;
-    }
+    for (int i = 1; i <= n; ++i) father[i] = i;
 }
 
 // 返回 id 所在集合的根，并通过递归压缩路径；要求 1<=id<=n。
 int find(int id) {
-    if (id != father[id]) {
-        father[id] = find(father[id]);
-    }
+    if (id != father[id]) father[id] = find(father[id]);
     return father[id];
 }
 

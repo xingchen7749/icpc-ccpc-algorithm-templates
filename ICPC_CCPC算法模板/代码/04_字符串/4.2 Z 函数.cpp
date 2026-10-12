@@ -10,9 +10,7 @@ using u64 = unsigned long long;
 vector<int> z_function(const string& s) {
     int n = s.size();
     vector<int> z(n);
-    if (n) {
-        z[0] = n;
-    }
+    if (n) z[0] = n;
     for (int i = 1, l = 0, r = 0; i < n; ++i) {
         if (i < r) {
             z[i] = min(r - i, z[i - l]);

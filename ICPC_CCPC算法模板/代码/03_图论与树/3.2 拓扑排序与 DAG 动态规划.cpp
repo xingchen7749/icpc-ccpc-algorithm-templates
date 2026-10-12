@@ -12,23 +12,17 @@ vector<int> topo_sort(const vector<vector<int>>& g) {
     vector<int> deg(n + 1), ans;
     queue<int> q;
     for (auto& es : g) {
-        for (int v : es) {
-            ++deg[v];
-        }
+        for (int v : es) ++deg[v];
     }
     for (int i = 1; i <= n; ++i) {
-        if (!deg[i]) {
-            q.push(i);
-        }
+        if (!deg[i]) q.push(i);
     }
     while (!q.empty()) {
         int u = q.front();
         q.pop();
         ans.push_back(u);
         for (int v : g[u]) {
-            if (--deg[v] == 0) {
-                q.push(v);
-            }
+            if (--deg[v] == 0) q.push(v);
         }
     }
     return ans;

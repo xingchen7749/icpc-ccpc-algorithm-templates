@@ -14,9 +14,7 @@ vector<int> prefix_function(const string& s) {
         while (j && s[i] != s[j]) {
             j = pi[j - 1];
         }
-        if (s[i] == s[j]) {
-            ++j;
-        }
+        if (s[i] == s[j]) ++j;
         pi[i] = j;
     }
     return pi;
@@ -36,9 +34,7 @@ vector<int> kmp(const string& text, const string& p) {
         while (j && text[i] != p[j]) {
             j = pi[j - 1];
         }
-        if (text[i] == p[j]) {
-            ++j;
-        }
+        if (text[i] == p[j]) ++j;
         if (j == (int)p.size()) {
             ans.push_back(i - j + 1);
             j = pi[j - 1];

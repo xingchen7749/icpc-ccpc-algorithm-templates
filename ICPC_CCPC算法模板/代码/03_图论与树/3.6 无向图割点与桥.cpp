@@ -46,9 +46,7 @@ struct LowLink {
     // 应在全部边添加完后调用一次；本实现不清空旧状态，修改图后需重建对象。
     void build() {
         for (int i = 1; i <= n; ++i) {
-            if (!dfn[i]) {
-                dfs(i, -1);
-            }
+            if (!dfn[i]) dfs(i, -1);
         }
     }
 };

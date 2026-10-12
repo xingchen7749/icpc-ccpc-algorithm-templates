@@ -19,14 +19,10 @@ int min_rotation(const string& s) {
         }
         if (t[i + k] > t[j + k]) {
             i += k + 1;
-            if (i == j) {
-                ++i;
-            }
+            if (i == j) ++i;
         } else {
             j += k + 1;
-            if (i == j) {
-                ++j;
-            }
+            if (i == j) ++j;
         }
         k = 0;
     }

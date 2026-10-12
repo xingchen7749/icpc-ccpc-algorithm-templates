@@ -33,9 +33,7 @@ void fft(vector<cd>& a, bool inv) {
         }
     }
     if (inv) {
-        for (cd& x : a) {
-            x /= n;
-        }
+        for (cd& x : a) x /= n;
     }
 }
 // 返回实系数多项式 a、b 的近似卷积，系数按次数从 0 编号；空输入返回空数组。
@@ -44,9 +42,7 @@ void fft(vector<cd>& a, bool inv) {
 vector<double> convolution(const vector<double>& a, const vector<double>& b) {
     if (a.empty() || b.empty()) return {};
     int need = a.size() + b.size() - 1, n = 1;
-    while (n < need) {
-        n <<= 1;
-    }
+    while (n < need) n <<= 1;
     vector<cd> x(n), y(n);
     copy(a.begin(), a.end(), x.begin());
     copy(b.begin(), b.end(), y.begin());
@@ -57,9 +53,7 @@ vector<double> convolution(const vector<double>& a, const vector<double>& b) {
     }
     fft(x, true);
     vector<double> ans(need);
-    for (int i = 0; i < need; ++i) {
-        ans[i] = x[i].real();
-    }
+    for (int i = 0; i < need; ++i) ans[i] = x[i].real();
     return ans;
 }
 

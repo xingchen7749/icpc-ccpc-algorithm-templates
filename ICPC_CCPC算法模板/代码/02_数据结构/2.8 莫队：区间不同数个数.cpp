@@ -21,30 +21,18 @@ vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>
     int l = 1, r = 0, cur = 0;
     // 把位置 i 纳入当前窗口，更新其频数；该值首次出现时增加不同值计数 cur。
     auto add = [&](int i) {
-        if (cnt[a[i]]++ == 0) {
-            ++cur;
-        }
+        if (cnt[a[i]]++ == 0) ++cur;
     };
     // 把当前窗口内的位置 i 移出，更新其频数；该值不再出现时减少 cur。
     auto del = [&](int i) {
-        if (--cnt[a[i]] == 0) {
-            --cur;
-        }
+        if (--cnt[a[i]] == 0) --cur;
     };
     for (int id : ord) {
         auto [L, R] = ranges[id];
-        while (l > L) {
-            add(--l);
-        }
-        while (r < R) {
-            add(++r);
-        }
-        while (l < L) {
-            del(l++);
-        }
-        while (r > R) {
-            del(r--);
-        }
+        while (l > L) add(--l);
+        while (r < R) add(++r);
+        while (l < L) del(l++);
+        while (r > R) del(r--);
         ans[id] = cur;
     }
     return ans;

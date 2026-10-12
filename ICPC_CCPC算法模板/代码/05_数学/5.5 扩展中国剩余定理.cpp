@@ -31,9 +31,7 @@ optional<i64> inverse(i64 a, i64 m) {
     i128 x, y;
     if (exgcd(norm(a, m), m, x, y) != 1) return nullopt;
     x %= m;
-    if (x < 0) {
-        x += m;
-    }
+    if (x < 0) x += m;
     return (i64)x;
 }
 
@@ -49,22 +47,16 @@ struct CRTResult {
 CRTResult crt_merge(i64 a, i64 m, i64 b, i64 n) {
     assert(m > 0 && n > 0);
     a %= m;
-    if (a < 0) {
-        a += m;
-    }
+    if (a < 0) a += m;
     b %= n;
-    if (b < 0) {
-        b += n;
-    }
+    if (b < 0) b += n;
     i128 x, y;
     i64 g = exgcd(m, n, x, y);
     i128 diff = i128(b) - a;
     if (diff % g) return {0, 0, 0};
     i128 mod = n / g;
     i128 t = (diff / g * x) % mod;
-    if (t < 0) {
-        t += mod;
-    }
+    if (t < 0) t += mod;
     i128 lcm = i128(m / g) * n;
     if (lcm > LLONG_MAX) return {2, 0, 0};
     i128 r = (i128(a) + i128(m) * t) % lcm;

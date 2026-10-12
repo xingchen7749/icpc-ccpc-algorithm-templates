@@ -31,9 +31,7 @@ optional<i64> inverse(i64 a, i64 m) {
     i128 x, y;
     if (exgcd(norm(a, m), m, x, y) != 1) return nullopt;
     x %= m;
-    if (x < 0) {
-        x += m;
-    }
+    if (x < 0) x += m;
     return (i64)x;
 }
 

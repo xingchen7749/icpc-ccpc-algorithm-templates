@@ -30,9 +30,7 @@ vector<i64> divide_dp_layer(const vector<i64>& prev, Cost cost) {
         go(l, mid - 1, optL, best);
         go(mid + 1, r, best, optR);
     };
-    if (n) {
-        go(1, n, 0, n - 1);
-    }
+    if (n) go(1, n, 0, n - 1);
     return cur;
 }
 

@@ -36,9 +36,7 @@ vector<P> clip_halfplane(const vector<P>& poly, P a, P b) {
         P p = poly[i], q = poly[(i + 1) % n];
         ld dp = cross(v, p - a), dq = cross(v, q - a);
         bool ip = dp >= -EPS, iq = dq >= -EPS;
-        if (ip) {
-            out.push_back(p);
-        }
+        if (ip) out.push_back(p);
         if (ip != iq) {
             // Classification uses EPS; clamp near-boundary interpolation.
             ld t = dp / (dp - dq);

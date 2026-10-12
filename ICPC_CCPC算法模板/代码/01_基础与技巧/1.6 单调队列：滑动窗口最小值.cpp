@@ -19,9 +19,7 @@ vector<i64> window_min(const vector<i64>& a, int k) {
             q.pop_back();
         }
         q.push_back(i);
-        if (i >= k) {
-            ans.push_back(a[q.front()]);
-        }
+        if (i >= k) ans.push_back(a[q.front()]);
     }
     return ans;
 }
