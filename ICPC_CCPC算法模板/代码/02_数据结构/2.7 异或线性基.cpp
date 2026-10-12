@@ -6,24 +6,37 @@ using u64 = unsigned long long;
 // #define int long long
 
 struct XorBasis {
-    array<u64,64> b{};
+    array<u64, 64> b{};
     // 将 x 加入异或线性基；使线性空间维数增加时返回 true，否则返回 false。
     // 会修改基向量，处理完整 64 位无符号范围，时间 O(64)。
-    bool insert(u64 x){
-        for(int i=63;i>=0;--i)if((x>>i)&1){
-            if(!b[i]){b[i]=x;return true;} x^=b[i];
+    bool insert(u64 x) {
+        for (int i = 63; i >= 0; --i) {
+            if ((x >> i) & 1) {
+                if (!b[i]) {
+                    b[i] = x;
+                    return true;
+                }
+                x ^= b[i];
+            }
         }
         return false;
     }
     // 判断 x 能否由已插入数的某个子集异或得到；允许空集，因此 0 总可表示，O(64)。
     bool contains(u64 x) const {
-        for(int i=63;i>=0;--i)if((x>>i)&1)x^=b[i];
-        return x==0;
+        for (int i = 63; i >= 0; --i) {
+            if ((x >> i) & 1) {
+                x ^= b[i];
+            }
+        }
+        return x == 0;
     }
     // 返回 x 与线性空间中某个值异或后的最大无符号结果；默认 x=0 求最大子集异或和。
     // 不修改线性基，允许选择空集，时间 O(64)。
-    u64 maximum(u64 x=0) const {
-        for(int i=63;i>=0;--i)x=max(x,x^b[i]);return x;
+    u64 maximum(u64 x = 0) const {
+        for (int i = 63; i >= 0; --i) {
+            x = max(x, x ^ b[i]);
+        }
+        return x;
     }
 };
 

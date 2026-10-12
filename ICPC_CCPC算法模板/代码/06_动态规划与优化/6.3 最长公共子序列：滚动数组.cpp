@@ -7,15 +7,21 @@ using u64 = unsigned long long;
 
 // 返回字符串 a、b 的最长公共子序列长度，允许不连续；空串对应答案 0。
 // 滚动数组不保存恢复方案所需的信息；时间 O(|a|*|b|)，空间 O(|b|)。
-int lcs(const string&a,const string&b){
-    vector<int>dp(b.size()+1);
-    for(char x:a){int diag=0;
-        for(int j=1;j<=(int)b.size();++j){
-            int old=dp[j];
-            if(x==b[j-1])dp[j]=diag+1;else dp[j]=max(dp[j],dp[j-1]);
-            diag=old;
+int lcs(const string& a, const string& b) {
+    vector<int> dp(b.size() + 1);
+    for (char x : a) {
+        int diag = 0;
+        for (int j = 1; j <= (int)b.size(); ++j) {
+            int old = dp[j];
+            if (x == b[j - 1]) {
+                dp[j] = diag + 1;
+            } else {
+                dp[j] = max(dp[j], dp[j - 1]);
+            }
+            diag = old;
         }
-    }return dp.back();
+    }
+    return dp.back();
 }
 
 void solve() {

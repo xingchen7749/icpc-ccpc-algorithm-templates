@@ -11,7 +11,9 @@ vector<int> father, rk;
 void init(int n) {
     father.resize(n + 1);
     rk.assign(n + 1, 1);
-    for (int i = 1; i <= n; ++i) father[i] = i;
+    for (int i = 1; i <= n; ++i) {
+        father[i] = i;
+    }
 }
 
 // 返回 id 所在集合的根，并通过递归压缩路径；要求 1<=id<=n。
@@ -27,9 +29,11 @@ int find(int id) {
 bool merge(int u, int v) {
     int a = find(u), b = find(v);
     if (a == b) return false;
-    if (rk[a] > rk[b]) father[b] = a;
-    else if (rk[b] > rk[a]) father[a] = b;
-    else {
+    if (rk[a] > rk[b]) {
+        father[b] = a;
+    } else if (rk[b] > rk[a]) {
+        father[a] = b;
+    } else {
         father[b] = a;
         rk[a]++;
     }
@@ -46,12 +50,10 @@ struct Edge {
 // 返回 {总权值,选中边数}；选中 n-1 条边才表示整图连通，权值和须在 i64 范围内。
 // 要求 n>=1，顶点为 1..n；不修改调用者的 es，会重置全局并查集。
 // 时间 O(n + m log(m+1))，空间 O(n+m)。
-pair<i64,int> kruskal(int n, vector<Edge> es) {
+pair<i64, int> kruskal(int n, vector<Edge> es) {
     init(n);
     // 按边权从小到大比较两条边，供 Kruskal 依次尝试选边。
-    sort(es.begin(), es.end(), [](const Edge& a, const Edge& b) {
-        return a.w < b.w;
-    });
+    sort(es.begin(), es.end(), [](const Edge& a, const Edge& b) { return a.w < b.w; });
     int num = n;
     i64 result = 0;
     for (int i = 0; i < (int)es.size(); ++i) {
@@ -72,8 +74,11 @@ void solve() {
         cin >> arr[i].u >> arr[i].v >> arr[i].w;
     }
     auto [result, used] = kruskal(n, arr);
-    if (used != n - 1) cout << -1 << '\n';
-    else cout << result << '\n';
+    if (used != n - 1) {
+        cout << -1 << '\n';
+    } else {
+        cout << result << '\n';
+    }
 }
 
 

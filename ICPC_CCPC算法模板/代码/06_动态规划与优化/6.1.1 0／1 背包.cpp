@@ -7,8 +7,11 @@ using u64 = unsigned long long;
 
 // 将一件重量 w、价值 v 的物品加入 0/1 背包，原地更新 dp[0..W]，容量倒序。
 // 要求 w>0；默认 dp 为容量不超过上限的最优值且允许不选，加法不得溢出；时间 O(W)。
-void zero_one(vector<i64>&dp,int w,i64 v){
-    assert(w>0);for(int c=(int)dp.size()-1;c>=w;--c)dp[c]=max(dp[c],dp[c-w]+v);
+void zero_one(vector<i64>& dp, int w, i64 v) {
+    assert(w > 0);
+    for (int c = (int)dp.size() - 1; c >= w; --c) {
+        dp[c] = max(dp[c], dp[c - w] + v);
+    }
 }
 
 void solve() {

@@ -7,8 +7,11 @@ using u64 = unsigned long long;
 
 // 将可无限使用的重量 w、价值 v 的物品加入完全背包，原地更新 dp，容量正序。
 // 要求 w>0，dp 使用容量 0..W；当前初始化约定为不要求恰好装满，时间 O(W)。
-void complete(vector<i64>&dp,int w,i64 v){
-    assert(w>0);for(int c=w;c<(int)dp.size();++c)dp[c]=max(dp[c],dp[c-w]+v);
+void complete(vector<i64>& dp, int w, i64 v) {
+    assert(w > 0);
+    for (int c = w; c < (int)dp.size(); ++c) {
+        dp[c] = max(dp[c], dp[c - w] + v);
+    }
 }
 
 void solve() {

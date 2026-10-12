@@ -18,9 +18,10 @@ vector<i64> difference(const vector<i64>& a) {
 }
 // 在差分数组 diff 上记录闭区间 [l,r] 加 v，不直接还原原数组；l>r 时不操作。
 // 有效更新要求 l>=1 且 r+1 在数组内，通常分配 n+2 项；时间 O(1)。
-void range_add(vector<i64>& diff,int l,int r,i64 v) {
-    if(l>r)return;
-    diff[l]+=v;diff[r+1]-=v;
+void range_add(vector<i64>& diff, int l, int r, i64 v) {
+    if (l > r) return;
+    diff[l] += v;
+    diff[r + 1] -= v;
 }
 // 将含 n+2 项的 diff 前缀累加，返回 a[1..n]，a[0]=0；忽略末项边界标记。
 // 不修改 diff，可在后续继续更新并再次还原；时间和空间 O(n)。
@@ -28,7 +29,9 @@ vector<i64> restore(const vector<i64>& diff) {
     assert(diff.size() >= 2);
     int n = (int)diff.size() - 2;
     vector<i64> a(n + 1);
-    for (int i = 1; i <= n; ++i) a[i] = a[i - 1] + diff[i];
+    for (int i = 1; i <= n; ++i) {
+        a[i] = a[i - 1] + diff[i];
+    }
     return a;
 }
 

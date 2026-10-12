@@ -7,12 +7,23 @@ using u64 = unsigned long long;
 
 // 返回 z[i]=s 与后缀 s[i..] 的最长公共前缀长度，位置从 0 开始。
 // 约定非空串 z[0]=|s|，空串返回空数组；时间和空间 O(|s|)。
-vector<int> z_function(const string& s){
-    int n=s.size();vector<int>z(n);if(n)z[0]=n;
-    for(int i=1,l=0,r=0;i<n;++i){
-        if(i<r)z[i]=min(r-i,z[i-l]);
-        while(i+z[i]<n&&s[z[i]]==s[i+z[i]])++z[i];
-        if(i+z[i]>r){l=i;r=i+z[i];}
+vector<int> z_function(const string& s) {
+    int n = s.size();
+    vector<int> z(n);
+    if (n) {
+        z[0] = n;
+    }
+    for (int i = 1, l = 0, r = 0; i < n; ++i) {
+        if (i < r) {
+            z[i] = min(r - i, z[i - l]);
+        }
+        while (i + z[i] < n && s[z[i]] == s[i + z[i]]) {
+            ++z[i];
+        }
+        if (i + z[i] > r) {
+            l = i;
+            r = i + z[i];
+        }
     }
     return z;
 }

@@ -9,12 +9,19 @@ using u64 = unsigned long long;
 // 输入和输出的 0 号项均占位，要求 1<=k<=n；时间 O(n)，队列空间 O(k)。
 vector<i64> window_min(const vector<i64>& a, int k) {
     assert(1 <= k && k < (int)a.size());
-    deque<int> q; vector<i64> ans(1);
+    deque<int> q;
+    vector<i64> ans(1);
     for (int i = 1; i < (int)a.size(); ++i) {
-        while (!q.empty() && q.front() <= i-k) q.pop_front();
-        while (!q.empty() && a[q.back()] >= a[i]) q.pop_back();
+        while (!q.empty() && q.front() <= i - k) {
+            q.pop_front();
+        }
+        while (!q.empty() && a[q.back()] >= a[i]) {
+            q.pop_back();
+        }
         q.push_back(i);
-        if (i >= k) ans.push_back(a[q.front()]);
+        if (i >= k) {
+            ans.push_back(a[q.front()]);
+        }
     }
     return ans;
 }

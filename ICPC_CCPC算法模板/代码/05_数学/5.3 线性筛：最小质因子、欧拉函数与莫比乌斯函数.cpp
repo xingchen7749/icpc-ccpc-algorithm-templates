@@ -6,24 +6,37 @@ using u64 = unsigned long long;
 // #define int long long
 
 struct Sieve {
-    vector<int>primes,lp,phi,mu;
+    vector<int> primes, lp, phi, mu;
     // 在线性时间内筛出 1..n 的素数、最小质因子 lp、欧拉函数 phi 和莫比乌斯函数 mu。
     // 要求 n>=1；phi[1]=mu[1]=1，lp[1]=0；时间和空间 O(n)。
-    Sieve(int n):lp(n+1),phi(n+1),mu(n+1){
-        assert(n>=1);phi[1]=mu[1]=1;
-        for(int i=2;i<=n;++i){
-            if(!lp[i]){lp[i]=i;primes.push_back(i);phi[i]=i-1;mu[i]=-1;}
-            for(int p:primes){
-                if(1LL*i*p>n)break;int x=i*p;lp[x]=p;
-                if(i%p==0){phi[x]=phi[i]*p;mu[x]=0;break;}
-                phi[x]=phi[i]*(p-1);mu[x]=-mu[i];
+    Sieve(int n) : lp(n + 1), phi(n + 1), mu(n + 1) {
+        assert(n >= 1);
+        phi[1] = mu[1] = 1;
+        for (int i = 2; i <= n; ++i) {
+            if (!lp[i]) {
+                lp[i] = i;
+                primes.push_back(i);
+                phi[i] = i - 1;
+                mu[i] = -1;
+            }
+            for (int p : primes) {
+                if (1LL * i * p > n) break;
+                int x = i * p;
+                lp[x] = p;
+                if (i % p == 0) {
+                    phi[x] = phi[i] * p;
+                    mu[x] = 0;
+                    break;
+                }
+                phi[x] = phi[i] * (p - 1);
+                mu[x] = -mu[i];
             }
         }
     }
     // 判断 x 是否为素数，要求 0<=x<=n；调用：s.is_prime(x)。
     bool is_prime(int x) const {
-        assert(0<=x && x<(int)lp.size());
-        return x>=2 && lp[x]==x;
+        assert(0 <= x && x < (int)lp.size());
+        return x >= 2 && lp[x] == x;
     }
 };
 

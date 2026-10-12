@@ -24,20 +24,26 @@ i64 qpow(i64 a, u64 b, i64 mod) {
 // 依赖手册 5.1「快速幂」，以上已展开其实现。
 // 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp），复制本节时一并复制。
 struct Comb {
-    i64 p;vector<i64>fac,ifac;
+    i64 p;
+    vector<i64> fac, ifac;
     // 预处理 0..n 的阶乘和逆阶乘，用于模素数 p 的组合数查询。
     // 要求 0<=n<p 且 p 是素数（不检查素性）；时间 O(n+log p)，空间 O(n)。
-    Comb(int n,i64 p):p(p),fac(n+1,1),ifac(n+1,1){
-        assert(n<p&&p>=2);
-        for(int i=1;i<=n;++i)fac[i]=i128(fac[i-1])*i%p;
-        ifac[n]=qpow(fac[n],p-2,p);
-        for(int i=n;i>0;--i)ifac[i-1]=i128(ifac[i])*i%p;
+    Comb(int n, i64 p) : p(p), fac(n + 1, 1), ifac(n + 1, 1) {
+        assert(n < p && p >= 2);
+        for (int i = 1; i <= n; ++i) {
+            fac[i] = i128(fac[i - 1]) * i % p;
+        }
+        ifac[n] = qpow(fac[n], p - 2, p);
+        for (int i = n; i > 0; --i) {
+            ifac[i - 1] = i128(ifac[i]) * i % p;
+        }
     }
     // 返回 C(n,k)%p；k<0 或 k>n 返回 0，有效查询要求 0<=n<=预处理上限。
     // 使用阶乘和逆阶乘，单次时间 O(1)。
-    i64 C(int n,int k)const{
-        if(k<0||k>n)return 0;assert(n<(int)fac.size());
-        return i128(fac[n])*ifac[k]%p*ifac[n-k]%p;
+    i64 C(int n, int k) const {
+        if (k < 0 || k > n) return 0;
+        assert(n < (int)fac.size());
+        return i128(fac[n]) * ifac[k] % p * ifac[n - k] % p;
     }
 };
 

@@ -21,15 +21,15 @@ public:
         int K = log2((double)n) + 1;
         st.assign(n + 1, vector<int>(K));
 
-        for (int i = 1; i <= n; ++i)
+        for (int i = 1; i <= n; ++i) {
             st[i][0] = a[i];
+        }
 
-        for (int j = 1; j < K; ++j)
-            for (int i = 1; i + (1LL << j) - 1 <= n; ++i)
-                st[i][j] = min(
-                    st[i][j - 1],
-                    st[i + (1LL << (j - 1))][j - 1]
-                );
+        for (int j = 1; j < K; ++j) {
+            for (int i = 1; i + (1LL << j) - 1 <= n; ++i) {
+                st[i][j] = min(st[i][j - 1], st[i + (1LL << (j - 1))][j - 1]);
+            }
+        }
     }
 
     // 1 下标，查询非空闭区间 [l, r] 的最小值

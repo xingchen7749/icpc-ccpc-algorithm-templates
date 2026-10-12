@@ -16,8 +16,7 @@ struct CustomHash {
     // 为整数键 x 计算带进程内固定随机种子的哈希值，供 unordered_map 等容器调用。
     // 同一进程内相同键得到相同结果；可降低固定碰撞构造的影响，但不保证无碰撞。
     size_t operator()(u64 x) const {
-        static const u64 seed = chrono::steady_clock::now()
-                                   .time_since_epoch().count();
+        static const u64 seed = chrono::steady_clock::now().time_since_epoch().count();
         return mix(x + seed);
     }
 };
