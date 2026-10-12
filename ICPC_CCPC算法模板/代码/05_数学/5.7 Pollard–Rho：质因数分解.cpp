@@ -24,6 +24,8 @@ bool is_prime(u64 n){
         if(!ok)return false;
     }return true;
 }
+
+// 依赖手册 5.6「Miller–Rabin：64 位素性测试」，以上已展开其实现。
 // Pollard-Rho 随机寻找并返回 n 的一个非平凡因子，要求 n 是合数且 n>=4。
 // 偶数直接返回 2；奇数失败时重新尝试，无确定的最坏运行时间保证。
 u64 rho(u64 n){

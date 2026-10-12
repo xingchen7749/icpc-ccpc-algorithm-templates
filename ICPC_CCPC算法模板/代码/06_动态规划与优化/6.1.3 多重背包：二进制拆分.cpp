@@ -10,11 +10,8 @@ using u64 = unsigned long long;
 void zero_one(vector<i64>&dp,int w,i64 v){
     assert(w>0);for(int c=(int)dp.size()-1;c>=w;--c)dp[c]=max(dp[c],dp[c-w]+v);
 }
-// 将可无限使用的重量 w、价值 v 的物品加入完全背包，原地更新 dp，容量正序。
-// 要求 w>0，dp 使用容量 0..W；当前初始化约定为不要求恰好装满，时间 O(W)。
-void complete(vector<i64>&dp,int w,i64 v){
-    assert(w>0);for(int c=w;c<(int)dp.size();++c)dp[c]=max(dp[c],dp[c-w]+v);
-}
+
+// 依赖手册 6.1.1「0/1 背包」，以上已展开其实现。
 // 将最多 count 件重量 w、价值 v 的物品加入多重背包，二进制拆分后更新 dp。
 // 要求 w>0、count>=0，价值乘积及转移和不溢出；时间 O(W*log(count+1))。
 void bounded(vector<i64>&dp,int w,i64 v,int count){

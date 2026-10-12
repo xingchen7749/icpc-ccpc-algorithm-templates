@@ -1,4 +1,4 @@
-// 自动生成，仅供测试；写题请使用代码目录中的独立程序。
+// 自动生成，仅供测试；写题使用独立 cpp。
 #pragma once
 #include <bits/stdc++.h>
 using namespace std;
@@ -22,7 +22,6 @@ i64 first_true(i64 lo, i64 hi, Pred ok) {
 }
 }
 
-
 namespace cp_compress {
 // a[0] is unused; xs[0] is also unused.
 // 将 a[1..n] 排序去重，返回带 0 号占位的有序值表 xs；不修改原数组。
@@ -38,6 +37,9 @@ template<class T> vector<T> compress(const vector<T>& a) {
 template<class T> int rank_of(const vector<T>& xs,T x) {
     return lower_bound(xs.begin()+1,xs.end(),x)-xs.begin();
 }
+}
+
+namespace cp_prefix {
 // 由 a[1..n] 构造前缀和 s，s[0]=0；[l,r] 的和为 s[r]-s[l-1]。
 // 忽略 a[0]，不修改 a；要求累加不溢出 i64，时间和空间均为 O(n)。
 vector<i64> prefix_sum(const vector<i64>& a) {
@@ -45,14 +47,36 @@ vector<i64> prefix_sum(const vector<i64>& a) {
     for(int i=1;i<(int)a.size();++i)s[i]=s[i-1]+a[i];
     return s; // sum[l,r] = s[r]-s[l-1]
 }
+}
+
+namespace cp_difference {
+// 由 a[1..n] 构造 n+2 项的差分数组，忽略占位 a[0]；不修改 a。
+// 输入至少含 a[0]，允许 n=0；末项用于区间更新的边界标记，时间和空间 O(n)。
+vector<i64> difference(const vector<i64>& a) {
+    assert(!a.empty());
+    int n = (int)a.size() - 1;
+    vector<i64> diff(n + 2);
+    for (int i = 1; i <= n; ++i) {
+        diff[i] = a[i] - (i == 1 ? 0 : a[i - 1]);
+    }
+    return diff;
+}
 // 在差分数组 diff 上记录闭区间 [l,r] 加 v，不直接还原原数组；l>r 时不操作。
 // 有效更新要求 l>=1 且 r+1 在数组内，通常分配 n+2 项；时间 O(1)。
 void range_add(vector<i64>& diff,int l,int r,i64 v) {
     if(l>r)return;
     diff[l]+=v;diff[r+1]-=v;
 }
+// 将含 n+2 项的 diff 前缀累加，返回 a[1..n]，a[0]=0；忽略末项边界标记。
+// 不修改 diff，可在后续继续更新并再次还原；时间和空间 O(n)。
+vector<i64> restore(const vector<i64>& diff) {
+    assert(diff.size() >= 2);
+    int n = (int)diff.size() - 2;
+    vector<i64> a(n + 1);
+    for (int i = 1; i <= n; ++i) a[i] = a[i - 1] + diff[i];
+    return a;
 }
-
+}
 
 namespace cp_window {
 // 返回 a[1..n] 每个长度为 k 的窗口最小值，ans[j] 对应 [j,j+k-1]。
@@ -69,7 +93,6 @@ vector<i64> window_min(const vector<i64>& a, int k) {
     return ans;
 }
 }
-
 
 namespace cp_hash {
 struct CustomHash {
@@ -89,7 +112,6 @@ struct CustomHash {
     }
 };
 }
-
 
 namespace cp_dsu {
 vector<int> father, rk;
@@ -124,7 +146,6 @@ bool merge(int u, int v) {
 }
 }
 
-
 namespace cp_rollback {
 struct RollbackDSU {
     vector<int> p,sz; vector<pair<int,int>> hist;
@@ -152,7 +173,6 @@ struct RollbackDSU {
     }
 };
 }
-
 
 namespace cp_fenwick {
 struct Fenwick {
@@ -184,7 +204,6 @@ struct Fenwick {
     }
 };
 }
-
 
 namespace cp_sparse {
 class ST {
@@ -223,7 +242,7 @@ public:
 };
 }
 
-
+namespace cp_lazyseg {
 class segmenttree
 {
 private:
@@ -351,7 +370,9 @@ public:
         return query(1, 1, n, l, r);
     }
 };
+}
 
+namespace cp_segtree {
 class SegTree
 {
 private:
@@ -461,6 +482,7 @@ public:
         return query(1, 1, n, l, r);
     }
 };
+}
 
 namespace cp_persistent {
 struct PersistentKth {
@@ -496,7 +518,6 @@ struct PersistentKth {
 };
 }
 
-
 namespace cp_basis {
 struct XorBasis {
     array<u64,64> b{};
@@ -520,7 +541,6 @@ struct XorBasis {
     }
 };
 }
-
 
 namespace cp_mo {
 // 离线统计 ranges 中各闭区间的不同值个数，答案按查询输入顺序返回，不带占位。
@@ -549,7 +569,6 @@ vector<int> mo_distinct(const vector<int>& a,int m,
     return ans;
 }
 }
-
 
 namespace cp_treap {
 struct ImplicitTreap {
@@ -601,7 +620,6 @@ struct ImplicitTreap {
 };
 }
 
-
 namespace cp_dijkstra {
 const i64 INF = (1LL << 62);
 
@@ -624,7 +642,6 @@ vector<i64> dijkstra(const vector<vector<pair<int,i64>>>& g,int s){
 }
 }
 
-
 namespace cp_bfs01 {
 // 求源点 s 的 0/1 边权最短路；g 使用 1 下标，边记录为 {终点,0或1}。
 // 返回各点距离，不可达为 1LL<<62；不修改图，时间 O(n+m)。
@@ -646,7 +663,6 @@ vector<i64> bfs01(const vector<vector<pair<int,int>>>& g,int s){
 }
 }
 
-
 namespace cp_bellman {
 struct Edge{int u,v;i64 w;};
 // 在 n 个点、边列表 e 中求 s 出发的最短路，并检查可达负环；点编号 1..n。
@@ -667,7 +683,6 @@ pair<bool,vector<i128>> bellman_ford(int n,const vector<Edge>& e,int s){
 }
 }
 
-
 namespace cp_topo {
 // 对 g[1..n] 做拓扑排序，返回无占位的顶点顺序列表；不修改图。
 // 返回长度不足 n 表示存在有向环，此时列表并非全图拓扑序；时间 O(n+m)。
@@ -682,7 +697,6 @@ vector<int> topo_sort(const vector<vector<int>>& g){
     return ans;
 }
 }
-
 
 namespace cp_kruskal {
 using cp_dsu::init;
@@ -714,7 +728,6 @@ pair<i64,int> kruskal(int n, vector<Edge> es) {
     return {result, n - num};
 }
 }
-
 
 namespace cp_scc {
 struct SCC {
@@ -748,7 +761,9 @@ struct SCC {
         }
     }
 };
+}
 
+namespace cp_tarjan {
 struct TarjanSCC {
     int n,cc=0,timer=0;
     vector<vector<int>> g;
@@ -791,7 +806,6 @@ struct TarjanSCC {
 };
 }
 
-
 namespace cp_twosat {
 using cp_scc::SCC;
 // Dependency: SCC from the previous entry.
@@ -818,7 +832,6 @@ struct TwoSAT {
     }
 };
 }
-
 
 namespace cp_bridges {
 struct LowLink {
@@ -847,7 +860,6 @@ struct LowLink {
     void build(){for(int i=1;i<=n;++i)if(!dfn[i])dfs(i,-1);}
 };
 }
-
 
 namespace cp_hld {
 struct HLD {
@@ -897,7 +909,6 @@ struct HLD {
 };
 }
 
-
 namespace cp_virtual {
 using cp_hld::HLD;
 // Dependency: HLD.
@@ -922,7 +933,6 @@ virtual_tree(HLD& h,vector<int> v){
 }
 }
 
-
 namespace cp_matching {
 struct BipartiteMatch {
     int nL,nR,timer=0;vector<vector<int>>g;vector<int>mr,seen;
@@ -945,7 +955,6 @@ struct BipartiteMatch {
     }
 };
 }
-
 
 namespace cp_dinic {
 const i64 INF = (1LL << 62);
@@ -997,7 +1006,6 @@ struct Dinic {
 };
 }
 
-
 namespace cp_mcf {
 struct MinCostFlow {
     struct E{int v,rev;i64 cap,cost;};int n;vector<vector<E>>g;
@@ -1041,6 +1049,80 @@ struct MinCostFlow {
 };
 }
 
+namespace cp_tree_point_diff {
+using cp_hld::HLD;
+// 依赖手册 3.7 的 HLD（树链剖分、LCA 与子树区间），独立文件已展开。
+class TreePointDiff {
+private:
+    HLD h;
+    vector<i64> diff;
+
+public:
+    // 为非空连通无向树 g[1..n] 初始化点差分，根为 root，初始增量全为 0。
+    // 要求 1<=root<=n；使用迭代预处理，时间和空间 O(n)。
+    TreePointDiff(const vector<vector<int>>& g, int root = 1)
+        : h(g, root), diff(g.size(), 0) {}
+
+    // 将 u 到 v 路径上的所有点加 val，包含两端；时间 O(log n)。
+    void add(int u, int v, i64 val) {
+        assert(1 <= u && u <= h.n && 1 <= v && v <= h.n);
+        int p = h.lca(u, v);
+        diff[u] += val;
+        diff[v] += val;
+        diff[p] -= val;
+        if (h.par[p] != p) diff[h.par[p]] -= val;
+    }
+
+    // 返回各点累计增量 ans[1..n]，ans[0]=0；时间和空间 O(n)。
+    // 按 dfs 序逆序向父亲累加，不修改 diff，可重复调用并继续添加操作。
+    vector<i64> result() const {
+        vector<i64> ans = diff;
+        for (int i = h.n; i > 1; --i) {
+            int u = h.rev[i];
+            ans[h.par[u]] += ans[u];
+        }
+        return ans;
+    }
+};
+}
+
+namespace cp_tree_edge_diff {
+using cp_hld::HLD;
+// 依赖手册 3.7 的 HLD（树链剖分、LCA 与子树区间），独立文件已展开。
+class TreeEdgeDiff {
+private:
+    HLD h;
+    vector<i64> diff;
+
+public:
+    // 为非空连通无向树 g[1..n] 初始化边差分，根为 root，初始增量全为 0。
+    // 要求 1<=root<=n；使用迭代预处理，时间和空间 O(n)。
+    TreeEdgeDiff(const vector<vector<int>>& g, int root = 1)
+        : h(g, root), diff(g.size(), 0) {}
+
+    // 将 u 到 v 路径上的所有边加 val；u==v 时无边被修改，时间 O(log n)。
+    void add(int u, int v, i64 val) {
+        assert(1 <= u && u <= h.n && 1 <= v && v <= h.n);
+        int p = h.lca(u, v);
+        diff[u] += val;
+        diff[v] += val;
+        diff[p] -= val;
+        diff[p] -= val;
+    }
+
+    // 返回各边累计增量，ans[u] 对应父节点到 u 的边，根及 ans[0] 为 0。
+    // 逆序向父亲累加，不修改 diff，可重复调用并继续更新；时间和空间 O(n)。
+    vector<i64> result() const {
+        vector<i64> ans = diff;
+        for (int i = h.n; i > 1; --i) {
+            int u = h.rev[i];
+            ans[h.par[u]] += ans[u];
+        }
+        ans[h.rev[1]] = 0;
+        return ans;
+    }
+};
+}
 
 namespace cp_kmp {
 // 返回前缀函数 pi，pi[i] 是 s[0..i] 的最长真前缀与后缀的公共长度。
@@ -1067,7 +1149,6 @@ vector<int> kmp(const string& text,const string& p){
 }
 }
 
-
 namespace cp_zfunc {
 // 返回 z[i]=s 与后缀 s[i..] 的最长公共前缀长度，位置从 0 开始。
 // 约定非空串 z[0]=|s|，空串返回空数组；时间和空间 O(|s|)。
@@ -1081,7 +1162,6 @@ vector<int> z_function(const string& s){
     return z;
 }
 }
-
 
 namespace cp_manacher {
 // 返回 {奇回文半径 d1,偶回文半径 d2}，均为 0 下标。
@@ -1102,7 +1182,6 @@ pair<vector<int>,vector<int>> manacher(const string& s){
     return {d1,d2};
 }
 }
-
 
 namespace cp_strhash {
 struct StringHash {
@@ -1125,7 +1204,6 @@ struct StringHash {
     }
 };
 }
-
 
 namespace cp_aho {
 struct Aho {
@@ -1165,7 +1243,6 @@ struct Aho {
 };
 }
 
-
 namespace cp_suffixarray {
 struct SuffixArray {
     vector<int>sa,rk,lcp;
@@ -1194,7 +1271,6 @@ struct SuffixArray {
     }
 };
 }
-
 
 namespace cp_sam {
 struct SAM {
@@ -1239,7 +1315,6 @@ struct SAM {
 };
 }
 
-
 namespace cp_booth {
 // 返回字典序最小循环移位的 0 下标起点；多个最优起点取最小者，空串返回 0。
 // 返回位置而非字符串；时间 O(n)，复制双倍串使用 O(n) 空间。
@@ -1254,7 +1329,6 @@ int min_rotation(const string&s){
     return min(i,j);
 }
 }
-
 
 namespace cp_qpow {
 // 快速幂：计算 a 的 b 次方对 mod 取模，返回 [0,mod-1] 内的余数。
@@ -1274,6 +1348,18 @@ i64 qpow(i64 a, u64 b, i64 mod) {
 }
 }
 
+namespace cp_fermat {
+using cp_qpow::qpow;
+// 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp）。
+// 要求 mod 是素数，且 a % mod != 0。
+// 用费马小定理返回 a 在模 mod 下的逆元，结果在 [0,mod-1]。
+// 要求 mod 是大于 1 的素数且 a 不被 mod 整除；本函数不检查素性。
+// 支持负 a，依赖 qpow；时间 O(log mod)，空间 O(1)。
+i64 inverse_fermat(i64 a, i64 mod) {
+    assert(mod > 1 && a % mod != 0);
+    return qpow(a, mod - 2, mod);
+}
+}
 
 namespace cp_modular {
 // 将整数 a 规范为模 m 的非负余数，返回 [0,m-1] 内的值；要求 m>0，时间 O(1)。
@@ -1291,7 +1377,6 @@ optional<i64> inverse(i64 a,i64 m){
     x%=m;if(x<0)x+=m;return (i64)x;
 }
 }
-
 
 namespace cp_sieve {
 struct Sieve {
@@ -1317,7 +1402,6 @@ struct Sieve {
 };
 }
 
-
 namespace cp_comb {
 using cp_qpow::qpow;
 // 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp），复制本节时一并复制。
@@ -1337,6 +1421,14 @@ struct Comb {
         if(k<0||k>n)return 0;assert(n<(int)fac.size());
         return i128(fac[n])*ifac[k]%p*ifac[n-k]%p;
     }
+};
+}
+
+namespace cp_lucas {
+using cp_comb::Comb;
+struct Lucas : Comb {
+    // 预处理完整的 0..p-1 阶乘表；p 必须是可承受 O(p) 时空开销的素数。
+    Lucas(int p) : Comb(p-1,p) {}
     // 用 Lucas 定理返回大参数 C(n,k)%p，要求构造时完整预处理到 p-1。
     // p 必须为素数；逐位处理 p 进制，时间 O(log_p(max(n,k)+1))，k>n 返回 0。
     i64 lucas(u64 n,u64 k)const{
@@ -1345,7 +1437,6 @@ struct Comb {
     }
 };
 }
-
 
 namespace cp_crt {
 using cp_modular::exgcd;
@@ -1365,8 +1456,7 @@ CRTResult crt_merge(i64 a,i64 m,i64 b,i64 n){
 }
 }
 
-
-namespace cp_factor {
+namespace cp_primality {
 using u128=__uint128_t;
 // 返回 (a*b)%m，要求 m>0；使用 u128 保存乘积，支持完整 u64 范围，O(1)。
 u64 mul(u64 a,u64 b,u64 m){return u128(a)*b%m;}
@@ -1386,6 +1476,13 @@ bool is_prime(u64 n){
         if(!ok)return false;
     }return true;
 }
+}
+
+namespace cp_factor {
+using cp_primality::u128;
+using cp_primality::mul;
+using cp_primality::pw;
+using cp_primality::is_prime;
 // Pollard-Rho 随机寻找并返回 n 的一个非平凡因子，要求 n 是合数且 n>=4。
 // 偶数直接返回 2；奇数失败时重新尝试，无确定的最坏运行时间保证。
 u64 rho(u64 n){
@@ -1406,7 +1503,6 @@ void factor(u64 n,vector<u64>& out){
 }
 }
 
-
 namespace cp_quotient {
 // 计算 Σ(i=1..n) floor(n/i)，按商相同的最大连续区间合并贡献。
 // 要求 n>=0，n=0 返回 0；结果用 i128，时间 O(sqrt(n))，额外空间 O(1)。
@@ -1419,7 +1515,6 @@ i128 quotient_sum(i64 n){
     return ans;
 }
 }
-
 
 namespace cp_ntt {
 using cp_qpow::qpow;
@@ -1456,7 +1551,6 @@ vector<int> convolution(vector<int>a,vector<int>b){
 }
 }
 
-
 namespace cp_gauss {
 // 对增广矩阵 a[1..n][1..m+1] 做实数高斯消元，末列为常数项，0 行/列占位。
 // 返回 {状态,x}：0 无解、1 唯一解、2 无穷多解；有解时 x[1..m] 给出自由变量取 0 的一组解。
@@ -1487,7 +1581,6 @@ pair<int,vector<long double>> gauss(vector<vector<long double>> a,
 }
 }
 
-
 namespace cp_matrix {
 using Matrix=vector<vector<i64>>;
 // 返回同阶方阵 a*b 对 mod 取模的结果；行列为 1..n，0 行/列占位。
@@ -1506,7 +1599,6 @@ Matrix matrix_power(Matrix a,u64 e,i64 mod){
     for(;e;e>>=1,a=multiply(a,a,mod))if(e&1)r=multiply(r,a,mod);return r;
 }
 }
-
 
 namespace cp_recurrence {
 // 已知 f[t]=c[0]f[t-1]+...+c[k-1]f[t-k]，返回 f[n]%mod。
@@ -1530,7 +1622,6 @@ i64 linear_nth(const vector<i64>& init,const vector<i64>& c,u64 n,i64 mod){
     i64 ans=0;for(int i=0;i<k;++i)ans=(i128(ans)+i128(r[i])*init[i])%mod;return ans;
 }
 }
-
 
 namespace cp_fft {
 using cd=complex<double>;
@@ -1562,11 +1653,13 @@ vector<double> convolution(const vector<double>&a,const vector<double>&b){
 }
 }
 
-
 namespace cp_games {
 // 判断正常 Nim 先手是否必胜：a[1..n] 为各堆石子数，忽略 a[0]。
 // 所有堆大小异或非零返回 true，空局面返回 false；时间 O(n)。
 bool nim_win(const vector<u64>&a){u64 x=0;for(int i=1;i<(int)a.size();++i)x^=a[i];return x!=0;}
+}
+
+namespace cp_misere {
 // 判断取最后一颗石子者输的反 Nim 先手胜负，堆数组为 a[1..n]。
 // 存在大于 1 的堆时看异或和，否则看 1 石子堆是否为偶数；本实现空局面返回 true。
 bool misere_nim_win(const vector<u64>&a){
@@ -1574,6 +1667,9 @@ bool misere_nim_win(const vector<u64>&a){
     for(int i=1;i<(int)a.size();++i){u64 v=a[i];x^=v;ones+=v==1;big|=v>1;}
     return big?x!=0:ones%2==0;
 }
+}
+
+namespace cp_sg {
 // 计算减法游戏状态 0..N 的 SG 值；moves 是每步可取走数量的无占位列表。
 // 要求 N>=0、每个动作 d>0；返回 sg[0]=0 的数组，时间 O(N*(|moves|+1))。
 vector<int> subtraction_sg(int N,const vector<int>&moves){
@@ -1585,7 +1681,6 @@ vector<int> subtraction_sg(int N,const vector<int>&moves){
     return sg;
 }
 }
-
 
 namespace cp_bigint {
 // 返回 10^k，用于编译期计算分块基数；要求 0<=k<=9。
@@ -1806,18 +1901,24 @@ big_int chu(const big_int& a, int b) { return divmod(a, b).first; }
 big_int chu(const big_int& a, const big_int& b) { return divmod(a, b).first; }
 }
 
-
 namespace cp_knapsack {
 // 将一件重量 w、价值 v 的物品加入 0/1 背包，原地更新 dp[0..W]，容量倒序。
 // 要求 w>0；默认 dp 为容量不超过上限的最优值且允许不选，加法不得溢出；时间 O(W)。
 void zero_one(vector<i64>&dp,int w,i64 v){
     assert(w>0);for(int c=(int)dp.size()-1;c>=w;--c)dp[c]=max(dp[c],dp[c-w]+v);
 }
+}
+
+namespace cp_complete {
 // 将可无限使用的重量 w、价值 v 的物品加入完全背包，原地更新 dp，容量正序。
 // 要求 w>0，dp 使用容量 0..W；当前初始化约定为不要求恰好装满，时间 O(W)。
 void complete(vector<i64>&dp,int w,i64 v){
     assert(w>0);for(int c=w;c<(int)dp.size();++c)dp[c]=max(dp[c],dp[c-w]+v);
 }
+}
+
+namespace cp_bounded {
+using cp_knapsack::zero_one;
 // 将最多 count 件重量 w、价值 v 的物品加入多重背包，二进制拆分后更新 dp。
 // 要求 w>0、count>=0，价值乘积及转移和不溢出；时间 O(W*log(count+1))。
 void bounded(vector<i64>&dp,int w,i64 v,int count){
@@ -1829,7 +1930,6 @@ void bounded(vector<i64>&dp,int w,i64 v,int count){
     }
 }
 }
-
 
 namespace cp_lis {
 // 返回 a[1..n] 的一条最长严格上升子序列对应的原数组下标列表，忽略 a[0]。
@@ -1848,7 +1948,6 @@ vector<int> lis_indices(const vector<i64>&a){
 }
 }
 
-
 namespace cp_lcs {
 // 返回字符串 a、b 的最长公共子序列长度，允许不连续；空串对应答案 0。
 // 滚动数组不保存恢复方案所需的信息；时间 O(|a|*|b|)，空间 O(|b|)。
@@ -1863,7 +1962,6 @@ int lcs(const string&a,const string&b){
     }return dp.back();
 }
 }
-
 
 namespace cp_digitdp {
 // 统计闭区间 [0,N] 中十进制相邻数字不同的整数个数，计入 0；N<0 返回 0。
@@ -1888,7 +1986,6 @@ u64 count_no_equal_adjacent(i64 N){
 }
 }
 
-
 namespace cp_sos {
 // 返回每个掩码 S 的子集和 Σ(T⊆S) f[T]；按值处理，不修改调用者的数组。
 // 要求 0<=n<31、f.size()==2^n 且内存足够，累加不溢出；时间 O(n*2^n)。
@@ -1905,7 +2002,6 @@ vector<i64> superset_sum(vector<i64>f,int n){
         if(!(s>>b&1))f[s]+=f[s^(1<<b)];return f;
 }
 }
-
 
 namespace cp_tree_dp {
 // 返回连通无向树的最大权独立集权值和，允许不选任何点；全负权时返回 0。
@@ -1924,7 +2020,6 @@ i64 tree_independent_set(const vector<vector<int>>&g,const vector<i64>&w){
     }return max(dp[1][0],dp[1][1]);
 }
 }
-
 
 namespace cp_lichao {
 struct LiChao {
@@ -1967,7 +2062,6 @@ struct LiChao {
 };
 }
 
-
 namespace cp_divide_dp {
 const i64 INF = (1LL << 62);
 
@@ -1991,8 +2085,8 @@ vector<i64> divide_dp_layer(const vector<i64>&prev,Cost cost){
 }
 }
 
+namespace cp_geo_int {
 
-namespace cp_intgeo {
 struct Point {
     i64 x,y;
     // 按 (x,y) 字典序比较当前点和 b，供严格排序使用；不使用浮点容差，O(1)。
@@ -2013,6 +2107,14 @@ bool on_segment(Point p,Point a,Point b){
     return cross(a,b,p)==0&&min(a.x,b.x)<=p.x&&p.x<=max(a.x,b.x)
         &&min(a.y,b.y)<=p.y&&p.y<=max(a.y,b.y);
 }
+
+}
+
+namespace cp_intgeo {
+using cp_geo_int::Point;
+using cp_geo_int::cross;
+using cp_geo_int::sign;
+using cp_geo_int::on_segment;
 // 判断闭线段 ab 与 cd 是否有交点，包含端点接触、共线重叠和退化点。
 // 使用整数精确判断，坐标绝对值不超过 10^18；时间 O(1)。
 bool intersect(Point a,Point b,Point c,Point d){
@@ -2022,6 +2124,11 @@ bool intersect(Point a,Point b,Point c,Point d){
     if(!z&&on_segment(a,c,d))return true;if(!w&&on_segment(b,c,d))return true;
     return x*y<0&&z*w<0;
 }
+}
+
+namespace cp_hull {
+using cp_geo_int::Point;
+using cp_geo_int::cross;
 // 返回点集 p 的逆时针凸包顶点列表，不带占位、不重复首点，删除边上中间共线点。
 // 输入可无序、有重复，不修改调用者的点集；全共线时只留端点，时间 O(n log n)。
 vector<Point> convex_hull(vector<Point>p){
@@ -2035,11 +2142,8 @@ vector<Point> convex_hull(vector<Point>p){
 }
 }
 
-
 namespace cp_polygon {
-using cp_intgeo::Point;
-using cp_intgeo::cross;
-using cp_intgeo::on_segment;
+using cp_geo_int::Point;
 // Dependency: Point, cross, on_segment.
 // 返回按边界顺序排列的多边形顶点 p 的两倍有向面积，逆时针为正、顺时针为负。
 // p 是无占位循环列表，不需重复首点；要求叉积累加不溢出 i128，时间 O(n)。
@@ -2047,6 +2151,12 @@ i128 area2(const vector<Point>&p){
     i128 a=0;int n=p.size();for(int i=0;i<n;++i){auto q=p[(i+1)%n];
         a+=i128(p[i].x)*q.y-i128(p[i].y)*q.x;}return a;
 }
+}
+
+namespace cp_point_location {
+using cp_geo_int::Point;
+using cp_geo_int::cross;
+using cp_geo_int::on_segment;
 // 判断点 q 与简单多边形 p 的位置关系：0 为外部、1 为边界、2 为内部。
 // p 是按边界顺序排列的无占位循环列表，顺逆时针均可；时间 O(n)。
 int inside(const vector<Point>&p,Point q){
@@ -2056,6 +2166,11 @@ int inside(const vector<Point>&p,Point q){
         if(a.y>q.y&&b.y<=q.y&&cross(a,b,q)<0)--wn;
     }return wn?2:0;
 }
+}
+
+namespace cp_diameter {
+using cp_geo_int::Point;
+using cp_geo_int::cross;
 // 返回整数点 a、b 的欧氏距离平方，避免开方；坐标绝对值不超过 10^18，时间 O(1)。
 i128 dist2(Point a,Point b){i128 x=i128(a.x)-b.x,y=i128(a.y)-b.y;return x*x+y*y;}
 // 用旋转卡壳返回凸多边形最远两点距离的平方；不足两个点返回 0。
@@ -2070,8 +2185,8 @@ i128 diameter2(const vector<Point>&p){
 }
 }
 
+namespace cp_geo_float {
 
-namespace cp_floatgeo {
 using ld=long double;const ld EPS=1e-12L;
 struct P{ld x,y;
     // 返回当前二维向量与 b 的逐坐标和，不修改原向量；时间 O(1)。
@@ -2084,12 +2199,29 @@ struct P{ld x,y;
 ld cross(P a,P b){return a.x*b.y-a.y*b.x;}
 // 返回二维向量 a、b 的点积，可用于投影和长度平方计算；时间 O(1)。
 ld dot(P a,P b){return a.x*b.x+a.y*b.y;}
+
+}
+
+namespace cp_floatgeo {
+using cp_geo_float::P;
+using cp_geo_float::ld;
+using cp_geo_float::cross;
+using cp_geo_float::dot;
+using cp_geo_float::EPS;
 // 返回直线 p+t*v 与 q+s*w 的唯一交点；v、w 必须是非零方向向量。
 // 在 EPS 意义下平行或重合时返回 nullopt，不区分这两种情况；时间 O(1)。
 optional<P> line_intersection(P p,P v,P q,P w){
     ld d=cross(v,w);if(fabsl(d)<EPS)return nullopt;
     return p+v*(cross(q-p,w)/d);
 }
+}
+
+namespace cp_circle {
+using cp_geo_float::P;
+using cp_geo_float::ld;
+using cp_geo_float::cross;
+using cp_geo_float::dot;
+using cp_geo_float::EPS;
 // 求圆心 a、半径 r 与圆心 b、半径 s 两圆的交点，要求半径非负。
 // 返回 {数量,交点列表}：0/1/2 为有限交点数，-1 表示重合且有无穷交点。
 // 按 EPS 判定，重合的零半径圆按一个交点处理；时间和空间 O(1)。
@@ -2108,13 +2240,12 @@ pair<int,vector<P>> circle_intersection(P a,ld r,P b,ld s){
 }
 }
 
-
 namespace cp_halfplane {
-using cp_floatgeo::P;
-using cp_floatgeo::ld;
-using cp_floatgeo::cross;
-using cp_floatgeo::dot;
-using cp_floatgeo::EPS;
+using cp_geo_float::P;
+using cp_geo_float::ld;
+using cp_geo_float::cross;
+using cp_geo_float::dot;
+using cp_geo_float::EPS;
 // Dependency: P, cross, EPS.
 // 用有向直线 a→b 裁剪凸多边形 poly，保留其左侧及边界，返回新的循环顶点列表。
 // 要求 a!=b，顶点按边界顺序排列且不带占位；空结果表示在容差意义下无交集。
@@ -2135,17 +2266,5 @@ vector<P> clip_halfplane(const vector<P>&poly,P a,P b){
 }
 }
 
-
-namespace cp_fermat {
-using cp_qpow::qpow;
-// 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp）。
-// 要求 mod 是素数，且 a % mod != 0。
-// 用费马小定理返回 a 在模 mod 下的逆元，结果在 [0,mod-1]。
-// 要求 mod 是大于 1 的素数且 a 不被 mod 整除；本函数不检查素性。
-// 支持负 a，依赖 qpow；时间 O(log mod)，空间 O(1)。
-i64 inverse_fermat(i64 a, i64 mod) {
-    assert(mod > 1 && a % mod != 0);
-    return qpow(a, mod - 2, mod);
-}
-}
-
+using cp_lazyseg::segmenttree;
+using cp_segtree::SegTree;

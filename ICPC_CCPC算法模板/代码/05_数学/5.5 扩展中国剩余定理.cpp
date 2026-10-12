@@ -20,6 +20,7 @@ optional<i64> inverse(i64 a,i64 m){
     x%=m;if(x<0)x+=m;return (i64)x;
 }
 
+// 依赖手册 5.2.2「扩展欧几里得求逆元」，以上已展开其实现。
 // 依赖 exgcd：见 5.2.2「扩展欧几里得求逆元」（代码/05_数学/5.2.2 扩展欧几里得求逆元.cpp）。
 struct CRTResult{int status;i64 r,m;};
 // 合并 x≡a(mod m) 与 x≡b(mod n)，要求 m,n>0，允许模数不互质。

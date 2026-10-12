@@ -21,6 +21,7 @@ i64 qpow(i64 a, u64 b, i64 mod) {
     return res;
 }
 
+// 依赖手册 5.1「快速幂」，以上已展开其实现。
 // 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp），复制本节时一并复制。
 struct Comb {
     i64 p;vector<i64>fac,ifac;
@@ -38,6 +39,12 @@ struct Comb {
         if(k<0||k>n)return 0;assert(n<(int)fac.size());
         return i128(fac[n])*ifac[k]%p*ifac[n-k]%p;
     }
+};
+
+// 依赖手册 5.4.1「阶乘预处理求组合数」，以上已展开其实现。
+struct Lucas : Comb {
+    // 预处理完整的 0..p-1 阶乘表；p 必须是可承受 O(p) 时空开销的素数。
+    Lucas(int p) : Comb(p-1,p) {}
     // 用 Lucas 定理返回大参数 C(n,k)%p，要求构造时完整预处理到 p-1。
     // p 必须为素数；逐位处理 p 进制，时间 O(log_p(max(n,k)+1))，k>n 返回 0。
     i64 lucas(u64 n,u64 k)const{

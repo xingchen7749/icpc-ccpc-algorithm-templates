@@ -5,6 +5,7 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+
 struct Point {
     i64 x,y;
     // 按 (x,y) 字典序比较当前点和 b，供严格排序使用；不使用浮点容差，O(1)。
@@ -25,25 +26,19 @@ bool on_segment(Point p,Point a,Point b){
     return cross(a,b,p)==0&&min(a.x,b.x)<=p.x&&p.x<=max(a.x,b.x)
         &&min(a.y,b.y)<=p.y&&p.y<=max(a.y,b.y);
 }
-// 判断闭线段 ab 与 cd 是否有交点，包含端点接触、共线重叠和退化点。
-// 使用整数精确判断，坐标绝对值不超过 10^18；时间 O(1)。
-bool intersect(Point a,Point b,Point c,Point d){
-    int x=sign(cross(a,b,c)),y=sign(cross(a,b,d));
-    int z=sign(cross(c,d,a)),w=sign(cross(c,d,b));
-    if(!x&&on_segment(c,a,b))return true;if(!y&&on_segment(d,a,b))return true;
-    if(!z&&on_segment(a,c,d))return true;if(!w&&on_segment(b,c,d))return true;
-    return x*y<0&&z*w<0;
-}
-// 返回点集 p 的逆时针凸包顶点列表，不带占位、不重复首点，删除边上中间共线点。
-// 输入可无序、有重复，不修改调用者的点集；全共线时只留端点，时间 O(n log n)。
-vector<Point> convex_hull(vector<Point>p){
-    sort(p.begin(),p.end());p.erase(unique(p.begin(),p.end()),p.end());
-    int n=p.size();if(n<=1)return p;vector<Point>h(2*n);int k=0;
-    for(auto v:p){while(k>=2&&cross(h[k-2],h[k-1],v)<=0)--k;h[k++]=v;}
-    for(int i=n-2,t=k+1;i>=0;--i){
-        while(k>=t&&cross(h[k-2],h[k-1],p[i])<=0)--k;h[k++]=p[i];
-    }
-    h.resize(k-1);return h;
+
+
+// 返回整数点 a、b 的欧氏距离平方，避免开方；坐标绝对值不超过 10^18，时间 O(1)。
+i128 dist2(Point a,Point b){i128 x=i128(a.x)-b.x,y=i128(a.y)-b.y;return x*x+y*y;}
+// 用旋转卡壳返回凸多边形最远两点距离的平方；不足两个点返回 0。
+// p 必须逆时针排列且无边上中间共线点，可直接使用 convex_hull 的结果；时间 O(n)。
+i128 diameter2(const vector<Point>&p){
+    int n=p.size();if(n<2)return 0;if(n==2)return dist2(p[0],p[1]);
+    i128 ans=0;int j=1;
+    for(int i=0;i<n;++i){int ni=(i+1)%n;
+        while(cross(p[i],p[ni],p[(j+1)%n])>cross(p[i],p[ni],p[j]))j=(j+1)%n;
+        ans=max({ans,dist2(p[i],p[j]),dist2(p[ni],p[j])});
+    }return ans;
 }
 
 void solve() {

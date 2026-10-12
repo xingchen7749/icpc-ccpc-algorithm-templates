@@ -36,6 +36,7 @@ bool merge(int u, int v) {
     return true;
 }
 
+// 依赖手册 2.1「并查集」，以上已展开其实现。
 struct Edge {
     int u, v;
     i64 w;
@@ -62,6 +63,7 @@ pair<i64,int> kruskal(int n, vector<Edge> es) {
     return {result, n - num};
 }
 
+
 void solve() {
     int n, m;
     cin >> n >> m;
@@ -73,6 +75,7 @@ void solve() {
     if (used != n - 1) cout << -1 << '\n';
     else cout << result << '\n';
 }
+
 
 signed main() {
     ios::sync_with_stdio(false);

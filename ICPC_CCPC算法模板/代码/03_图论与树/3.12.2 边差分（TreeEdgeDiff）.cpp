@@ -51,26 +51,41 @@ struct HLD {
     }
 };
 
-// Dependency: HLD.
-// 根据已预处理的 HLD 和关键点列表 v 构造虚树，自动补充必要 LCA 并去重。
-// 返回 {节点列表,父到子的虚边列表}，均保存原树的 1 下标编号；空关键点返回空结果。
-// 列表不带占位，非空时首节点为虚树根；k 个关键点耗时 O(k log k+k log n)。
-pair<vector<int>,vector<pair<int,int>>>
-virtual_tree(HLD& h,vector<int> v){
-    if(v.empty())return {{},{}};
-    // 按原树 dfs 序比较顶点 a、b，保证关键点和补入的 LCA 按树上遍历顺序排列。
-    auto cmp=[&](int a,int b){return h.pos[a]<h.pos[b];};
-    sort(v.begin(),v.end(),cmp);v.erase(unique(v.begin(),v.end()),v.end());
-    int k=v.size();for(int i=1;i<k;++i)v.push_back(h.lca(v[i-1],v[i]));
-    sort(v.begin(),v.end(),cmp);v.erase(unique(v.begin(),v.end()),v.end());
-    vector<int>st;vector<pair<int,int>>edges;
-    for(int u:v){
-        while(!st.empty() && !(h.pos[st.back()]<=h.pos[u] &&
-              h.pos[u]<h.pos[st.back()]+h.sz[st.back()]))st.pop_back();
-        if(!st.empty())edges.push_back({st.back(),u});st.push_back(u);
+// 依赖手册 3.7「树链剖分、LCA 与子树区间」，以上已展开其实现。
+// 依赖手册 3.7 的 HLD（树链剖分、LCA 与子树区间），独立文件已展开。
+class TreeEdgeDiff {
+private:
+    HLD h;
+    vector<i64> diff;
+
+public:
+    // 为非空连通无向树 g[1..n] 初始化边差分，根为 root，初始增量全为 0。
+    // 要求 1<=root<=n；使用迭代预处理，时间和空间 O(n)。
+    TreeEdgeDiff(const vector<vector<int>>& g, int root = 1)
+        : h(g, root), diff(g.size(), 0) {}
+
+    // 将 u 到 v 路径上的所有边加 val；u==v 时无边被修改，时间 O(log n)。
+    void add(int u, int v, i64 val) {
+        assert(1 <= u && u <= h.n && 1 <= v && v <= h.n);
+        int p = h.lca(u, v);
+        diff[u] += val;
+        diff[v] += val;
+        diff[p] -= val;
+        diff[p] -= val;
     }
-    return {v,edges};
-}
+
+    // 返回各边累计增量，ans[u] 对应父节点到 u 的边，根及 ans[0] 为 0。
+    // 逆序向父亲累加，不修改 diff，可重复调用并继续更新；时间和空间 O(n)。
+    vector<i64> result() const {
+        vector<i64> ans = diff;
+        for (int i = h.n; i > 1; --i) {
+            int u = h.rev[i];
+            ans[h.par[u]] += ans[u];
+        }
+        ans[h.rev[1]] = 0;
+        return ans;
+    }
+};
 
 void solve() {
     // Read one test case. Arrays and vertices use 1..n.

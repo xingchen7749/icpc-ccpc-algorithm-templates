@@ -20,9 +20,24 @@ void basics(){
         CHECK(cp_binary::first_true(0,n,[&](i64 x){return x>=k;})==k);
     CHECK(cp_compress::compress(vector<int>{999,3,1,3,2})==vector<int>({0,1,2,3}));
     CHECK(cp_compress::rank_of(vector<int>{0,1,2,3},2)==2);
-    CHECK(cp_compress::prefix_sum({999,1,2,3})==vector<i64>({0,1,3,6}));
-    vector<i64>d(6);cp_compress::range_add(d,2,4,3);
-    CHECK(cp_compress::prefix_sum(d)==vector<i64>({0,0,3,3,3,0}));
+    CHECK(cp_prefix::prefix_sum({999,1,2,3})==vector<i64>({0,1,3,6}));
+    vector<i64>d(6);cp_difference::range_add(d,2,4,3);
+    CHECK(cp_difference::restore(d)==vector<i64>({0,0,3,3,3}));
+    CHECK(cp_difference::restore(cp_difference::difference({999}))==vector<i64>({0}));
+    for(int n=1;n<=30;++n){
+        vector<i64>a(n+1,999);
+        for(int i=1;i<=n;++i)a[i]=rnd(-100,100);
+        auto diff=cp_difference::difference(a);a[0]=0;
+        CHECK(cp_difference::restore(diff)==a);
+        for(int t=0;t<100;++t){
+            int l=t==0?1:rnd(1,n),r=t==0?n:rnd(l,n);i64 v=rnd(-100,100);
+            cp_difference::range_add(diff,l,r,v);
+            for(int i=l;i<=r;++i)a[i]+=v;
+            CHECK(cp_difference::restore(diff)==a);
+        }
+        cp_difference::range_add(diff,2,1,7);
+        CHECK(cp_difference::restore(diff)==a);
+    }
     for(int z=0;z<100;++z){int n=rnd(1,30),k=rnd(1,n);vector<i64>a(n+1,999);
         for(int i=1;i<=n;++i)a[i]=rnd(-20,20);auto ans=cp_window::window_min(a,k);
         CHECK(ans.size()==size_t(n-k+2));
@@ -84,7 +99,7 @@ void structures(){
 
 void graphs(){
     for(int n:{0,1,6}){
-        cp_scc::SCC a(n);cp_scc::TarjanSCC b(n);
+        cp_scc::SCC a(n);cp_tarjan::TarjanSCC b(n);
         if(n){a.add_edge(1,1);b.add_edge(1,1);}
         if(n==6)for(auto [u,v]:vector<pair<int,int>>{{1,2},{1,2},{2,1},{2,3},{3,4},{4,3},{5,5}}){
             a.add_edge(u,v);b.add_edge(u,v);
@@ -94,13 +109,13 @@ void graphs(){
             CHECK((a.comp[u]==a.comp[v])==(b.comp[u]==b.comp[v]));
         auto old=b.comp;b.build();CHECK(b.comp==old);
     }
-    {cp_scc::TarjanSCC t(3);t.add_edge(1,2);t.add_edge(2,3);t.build();CHECK(t.cc==3);
+    {cp_tarjan::TarjanSCC t(3);t.add_edge(1,2);t.add_edge(2,3);t.build();CHECK(t.cc==3);
         t.add_edge(3,1);t.build();CHECK(t.cc==1);}
     for(int z=0;z<80;++z){
         int n=rnd(1,8);vector<vector<pair<int,i64>>>g(n+1);
         vector<vector<pair<int,int>>>g01(n+1);vector<vector<i64>>dist(n+1,vector<i64>(n+1,1000000));
         vector<vector<int>>d01(n+1,vector<int>(n+1,1000000));
-        cp_scc::SCC sc(n);cp_scc::TarjanSCC tarjan(n);
+        cp_scc::SCC sc(n);cp_tarjan::TarjanSCC tarjan(n);
         for(int i=1;i<=n;++i){dist[i][i]=0;d01[i][i]=0;}
         for(int i=1;i<=n;++i)for(int j=1;j<=n;++j)if(i!=j&&rnd(0,3)==0){
             int w=rnd(0,20),b=rnd(0,1);g[i].push_back({j,w});g01[i].push_back({j,b});
@@ -142,7 +157,7 @@ void graphs(){
         bool exists=false;for(int mask=0;mask<(1<<n);++mask)exists|=valid(mask);
         bool got=t.solve();CHECK(got==exists);
         if(got){int mask=0;for(int i=1;i<=n;++i)mask|=t.value[i]<<(i-1);CHECK(valid(mask));}
-        cp_scc::TarjanSCC sc(2*n);
+        cp_tarjan::TarjanSCC sc(2*n);
         for(auto [a,av,b,bv]:cs){int x=2*a-1+av,y=2*b-1+bv;
             sc.add_edge(x%2?x+1:x-1,y);sc.add_edge(y%2?y+1:y-1,x);}
         sc.build();bool feasible=true;int mask=0;
@@ -185,6 +200,48 @@ void trees(){
         for(auto [u,v]:edges){CHECK(ancestor(u,v));for(int w:nodes)if(w!=u&&w!=v)CHECK(!(ancestor(u,w)&&ancestor(w,v)));}
         CHECK(cp_virtual::virtual_tree(h,{}).first.empty());
     }
+}
+
+void tree_difference(){
+    for(int shape=0;shape<3;++shape)for(int n=1;n<=30;++n){
+        vector<vector<int>>g(n+1);
+        for(int u=2;u<=n;++u){
+            int p=shape==0?u-1:shape==1?1:rnd(1,u-1);
+            g[u].push_back(p);g[p].push_back(u);
+        }
+        for(int root:vector<int>{1,n}){
+            cp_tree_point_diff::TreePointDiff points(g,root);
+            cp_tree_edge_diff::TreeEdgeDiff edges(g,root);
+            vector<int>parent(n+1,-1),order{root};parent[root]=0;
+            for(int i=0;i<n;++i)for(int v:g[order[i]])if(parent[v]==-1){
+                parent[v]=order[i];order.push_back(v);
+            }
+            vector<i64>expectedPoints(n+1),expectedEdges(n+1);
+            CHECK(points.result()==expectedPoints);CHECK(edges.result()==expectedEdges);
+            for(int u=1;u<=n;++u)for(int v=1;v<=n;++v){
+                i64 val=rnd(-100,100);points.add(u,v,val);edges.add(u,v,val);
+                // 从 u 搜索到 v，逐点、逐边直接更新，独立于被测 LCA。
+                vector<int>prev(n+1,-1),queue{u};prev[u]=0;
+                for(int i=0;i<(int)queue.size();++i)for(int x:g[queue[i]])if(prev[x]==-1){
+                    prev[x]=queue[i];queue.push_back(x);
+                }
+                for(int x=v;;x=prev[x]){
+                    expectedPoints[x]+=val;
+                    if(x==u)break;
+                    int p=prev[x];expectedEdges[parent[x]==p?x:p]+=val;
+                }
+                CHECK(points.result()==expectedPoints);CHECK(edges.result()==expectedEdges);
+                CHECK(points.result()==expectedPoints);CHECK(edges.result()==expectedEdges);
+            }
+        }
+    }
+    int n=100000;vector<vector<int>>g(n+1);
+    for(int i=2;i<=n;++i){g[i-1].push_back(i);g[i].push_back(i-1);}
+    cp_tree_point_diff::TreePointDiff points(g,n);
+    cp_tree_edge_diff::TreeEdgeDiff edges(g,n);
+    points.add(1,n,3000000000LL);edges.add(1,n,-3000000000LL);
+    auto p=points.result(),e=edges.result();
+    for(int i=1;i<=n;++i){CHECK(p[i]==3000000000LL);CHECK(e[i]==(i==n?0:-3000000000LL));}
 }
 
 void flows(){
@@ -259,17 +316,17 @@ void math(){
     cp_comb::Comb comb(100,1000000007);vector<vector<i64>>pas(101,vector<i64>(101));pas[0][0]=1;
     for(int n=1;n<=100;++n){pas[n][0]=1;for(int k=1;k<=n;++k)pas[n][k]=(pas[n-1][k]+pas[n-1][k-1])%1000000007;}
     for(int n=0;n<=100;++n)for(int k=0;k<=n;++k)CHECK(comb.C(n,k)==pas[n][k]);
-    cp_comb::Comb small(6,7);vector<vector<int>>p7(101,vector<int>(101));p7[0][0]=1;
+    cp_lucas::Lucas small(7);vector<vector<int>>p7(101,vector<int>(101));p7[0][0]=1;
     for(int n=1;n<=100;++n){p7[n][0]=1;for(int k=1;k<=n;++k)p7[n][k]=(p7[n-1][k]+p7[n-1][k-1])%7;}
     for(int n=0;n<=100;++n)for(int k=0;k<=n;++k)CHECK(small.lucas(n,k)==p7[n][k]);
     for(int z=0;z<200;++z){int m=rnd(1,40),n=rnd(1,40),a=rnd(-50,50),b=rnd(-50,50);auto c=cp_crt::crt_merge(a,m,b,n);
         int exp=-1;for(int x=0;x<lcm(m,n);++x)if((x-a)%m==0&&(x-b)%n==0){exp=x;break;}
         CHECK(c.status==(exp==-1?0:1));if(c.status==1)CHECK(c.r==exp&&c.m==lcm(m,n));}
     CHECK(cp_crt::crt_merge(0,LLONG_MAX,0,LLONG_MAX-1).status==2);
-    for(u64 n=0;n<6000;++n){bool prime=n>=2;for(u64 d=2;d*d<=n;++d)if(n%d==0){prime=false;break;}CHECK(cp_factor::is_prime(n)==prime);}
-    CHECK(cp_factor::is_prime(18446744073709551557ULL));CHECK(!cp_factor::is_prime(341550071728321ULL));
+    for(u64 n=0;n<6000;++n){bool prime=n>=2;for(u64 d=2;d*d<=n;++d)if(n%d==0){prime=false;break;}CHECK(cp_primality::is_prime(n)==prime);}
+    CHECK(cp_primality::is_prime(18446744073709551557ULL));CHECK(!cp_primality::is_prime(341550071728321ULL));
     for(u64 n:{1ULL,2ULL,4ULL,600851475143ULL,1000000016000000063ULL,18446744073709551615ULL}){
-        vector<u64>f;cp_factor::factor(n,f);__uint128_t prod=1;for(u64 p:f){CHECK(cp_factor::is_prime(p));prod*=p;}CHECK(prod==n);}
+        vector<u64>f;cp_factor::factor(n,f);__uint128_t prod=1;for(u64 p:f){CHECK(cp_primality::is_prime(p));prod*=p;}CHECK(prod==n);}
     for(int n=0;n<300;++n){i128 ans=0;for(int i=1;i<=n;++i)ans+=n/i;CHECK(cp_quotient::quotient_sum(n)==ans);}
     for(int z=0;z<100;++z){int n=rnd(1,30),m=rnd(1,30);vector<int>a(n),b(m),c(n+m-1);vector<double>ad(n),bd(m);
         for(int i=0;i<n;++i)ad[i]=a[i]=rnd(0,100);for(int i=0;i<m;++i)bd[i]=b[i]=rnd(0,100);
@@ -284,8 +341,8 @@ void math(){
         for(int i=k;i<80;++i)for(int j=1;j<=k;++j)f[i]=(f[i]+c[j-1]*f[i-j])%1000000007;
         for(int n=0;n<80;++n)CHECK(cp_recurrence::linear_nth(init,c,n,1000000007)==f[n]);}
     CHECK(!cp_games::nim_win({0,1,2,3}));CHECK(cp_games::nim_win({0,1,2,4}));
-    CHECK(!cp_games::misere_nim_win({0,1,1,1}));CHECK(cp_games::misere_nim_win({0,1,1}));
-    auto sg=cp_games::subtraction_sg(100,{1,2});for(int i=0;i<=100;++i)CHECK(sg[i]==i%3);
+    CHECK(!cp_misere::misere_nim_win({0,1,1,1}));CHECK(cp_misere::misere_nim_win({0,1,1}));
+    auto sg=cp_sg::subtraction_sg(100,{1,2});for(int i=0;i<=100;++i)CHECK(sg[i]==i%3);
 }
 
 void dp(){
@@ -295,11 +352,11 @@ void dp(){
         auto ids=cp_lis::lis_indices(one_based(a));CHECK((int)ids.size()==best);
         for(int i=1;i<(int)ids.size();++i)CHECK(ids[i]>ids[i-1]&&a[ids[i]-1]>a[ids[i-1]-1]);
         int W=rnd(0,30),m=rnd(1,7);vector<int>w(m),count(m);vector<i64>v(m),got(W+1),exp(W+1);
-        for(int i=0;i<m;++i){w[i]=rnd(1,10);v[i]=rnd(-3,15);count[i]=rnd(0,5);cp_knapsack::bounded(got,w[i],v[i],count[i]);
+        for(int i=0;i<m;++i){w[i]=rnd(1,10);v[i]=rnd(-3,15);count[i]=rnd(0,5);cp_bounded::bounded(got,w[i],v[i],count[i]);
             auto next=exp;for(int c=0;c<=W;++c)for(int k=1;k<=count[i]&&k*w[i]<=c;++k)next[c]=max(next[c],exp[c-k*w[i]]+k*v[i]);exp=next;}
         CHECK(got==exp);
         fill(got.begin(),got.end(),0);fill(exp.begin(),exp.end(),0);
-        for(int i=0;i<m;++i){cp_knapsack::complete(got,w[i],v[i]);auto next=exp;
+        for(int i=0;i<m;++i){cp_complete::complete(got,w[i],v[i]);auto next=exp;
             for(int c=0;c<=W;++c)for(int k=1;k*w[i]<=c;++k)next[c]=max(next[c],exp[c-k*w[i]]+k*v[i]);exp=next;}CHECK(got==exp);
     }
     CHECK(cp_lcs::lcs("abcde","ace")==3);CHECK(cp_lcs::lcs("aaaa","aa")==2);CHECK(cp_lcs::lcs("","ab")==0);
@@ -336,22 +393,22 @@ void geometry(){
     CHECK(cp_intgeo::intersect({0,0},{0,0},{0,0},{1,1}));
     CHECK(cp_intgeo::intersect({0,0},{2,2},{0,2},{2,0}));
     for(int z=0;z<150;++z){vector<Point>p;int n=rnd(0,30);for(int i=0;i<n;++i)p.push_back({rnd(-20,20),rnd(-20,20)});
-        auto h=cp_intgeo::convex_hull(p);i128 best=0;for(auto a:p)for(auto b:p)best=max(best,cp_polygon::dist2(a,b));
-        CHECK(cp_polygon::diameter2(h)==best);
-        for(auto a:p)CHECK(cp_polygon::inside(h,a)!=0);
+        auto h=cp_hull::convex_hull(p);i128 best=0;for(auto a:p)for(auto b:p)best=max(best,cp_diameter::dist2(a,b));
+        CHECK(cp_diameter::diameter2(h)==best);
+        for(auto a:p)CHECK(cp_point_location::inside(h,a)!=0);
         if(h.size()>=3){CHECK(cp_polygon::area2(h)>0);for(int i=0;i<(int)h.size();++i)CHECK(cp_intgeo::cross(h[i],h[(i+1)%h.size()],h[(i+2)%h.size()])>0);}
     }
     vector<Point>sq{{0,0},{4,0},{4,4},{0,4}};
-    CHECK(cp_polygon::inside(sq,{2,2})==2);CHECK(cp_polygon::inside(sq,{0,2})==1);CHECK(cp_polygon::inside(sq,{5,2})==0);
+    CHECK(cp_point_location::inside(sq,{2,2})==2);CHECK(cp_point_location::inside(sq,{0,2})==1);CHECK(cp_point_location::inside(sq,{5,2})==0);
     CHECK(cp_polygon::area2(sq)==32);
     auto p=cp_floatgeo::line_intersection({0,0},{1,1},{0,1},{1,-1});CHECK(p&&fabsl(p->x-.5L)<1e-10&&fabsl(p->y-.5L)<1e-10);
     CHECK(!cp_floatgeo::line_intersection({0,0},{1,1},{0,1},{1,1}));
-    auto [cnt,points]=cp_floatgeo::circle_intersection({0,0},1,{1,0},1);CHECK(cnt==2);
+    auto [cnt,points]=cp_circle::circle_intersection({0,0},1,{1,0},1);CHECK(cnt==2);
     for(auto p:points){CHECK(fabsl(p.x*p.x+p.y*p.y-1)<1e-10);CHECK(fabsl((p.x-1)*(p.x-1)+p.y*p.y-1)<1e-10);}
-    CHECK(cp_floatgeo::circle_intersection({0,0},1,{2,0},1).first==1);
-    CHECK(cp_floatgeo::circle_intersection({0,0},1,{0,0},1).first==-1);
-    CHECK(cp_floatgeo::circle_intersection({0,0},1,{3,0},1).first==0);
-    CHECK(cp_floatgeo::circle_intersection({0,0},0,{0,0},0).first==1);
+    CHECK(cp_circle::circle_intersection({0,0},1,{2,0},1).first==1);
+    CHECK(cp_circle::circle_intersection({0,0},1,{0,0},1).first==-1);
+    CHECK(cp_circle::circle_intersection({0,0},1,{3,0},1).first==0);
+    CHECK(cp_circle::circle_intersection({0,0},0,{0,0},0).first==1);
     auto cut=cp_halfplane::clip_halfplane({{0,0},{4,0},{4,4},{0,4}},{2,-1},{2,5});
     long double area=0;for(int i=0;i<(int)cut.size();++i){CHECK(cut[i].x<=2+1e-10);area+=cp_floatgeo::cross(cut[i],cut[(i+1)%cut.size()]);}
     CHECK(fabsl(area-16)<1e-10);
@@ -364,6 +421,7 @@ int main(){
     structures();cout<<"structures OK\n";
     graphs();cout<<"graphs OK\n";
     trees();cout<<"trees OK\n";
+    tree_difference();cout<<"tree difference OK\n";
     flows();cout<<"flows OK\n";
     strings();cout<<"strings OK\n";
     math();cout<<"math OK\n";

@@ -1,4 +1,4 @@
-// 自动生成，仅供线段树专项测试。
+// 自动生成，仅供线段树测试。
 #pragma once
 class segmenttree
 {
@@ -127,7 +127,6 @@ public:
         return query(1, 1, n, l, r);
     }
 };
-
 class SegTree
 {
 private:

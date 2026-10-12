@@ -1,256 +1,232 @@
-"""Generate Markdown and self-contained C++ contest programs. No PDF is produced."""
+"""Generate the handbook and one self-contained C++ program per method."""
 from pathlib import Path
-from collections import defaultdict
+from collections import OrderedDict
 from urllib.parse import quote
-from handbook_data import ENTRIES
+import json
+import re
+from handbook_data import ENTRIES, HELPERS
 
 ROOT = Path(__file__).resolve().parent
 OUT = ROOT / 'ICPC_CCPC算法模板'
-STARTER = next(e['code'] for e in ENTRIES if e['key'] == 'starter')
-PRELUDE, ENTRYPOINT = STARTER.split('void solve()', 1)
 BY_KEY = {e['key']: e for e in ENTRIES}
-GROUPS = defaultdict(list)
-for item in ENTRIES:
-    GROUPS[item['chapter']].append(item)
+STARTER = BY_KEY['starter']['code']
+PRELUDE, ENTRYPOINT = STARTER.split('void solve()', 1)
+GROUPS = OrderedDict()
+for e in ENTRIES:
+    sections = GROUPS.setdefault(e['chapter'], OrderedDict())
+    sections.setdefault(e.get('section', e['title']), []).append(e)
+
 
 def filename_title(title):
-    """Keep handbook titles readable while making them legal Windows filenames."""
     return title.translate(str.maketrans('<>:"/\\|?*', '＜＞：＂／＼｜？＊')).rstrip(' .')
 
-CODE_PATHS = {
-    item['key']: Path(f'{i:02d}_{filename_title(chapter)}') / f'{i}.{j} {filename_title(item["title"])}.cpp'
-    for i, (chapter, items) in enumerate(GROUPS.items(), 1)
-    for j, item in enumerate(items, 1)
+
+CODE_PATHS, NUMBERS = {}, {}
+for i, (chapter, sections) in enumerate(GROUPS.items(), 1):
+    for j, (title, methods) in enumerate(sections.items(), 1):
+        for k, e in enumerate(methods, 1):
+            number = f'{i}.{j}' + (f'.{k}' if 'section' in e else '')
+            NUMBERS[e['key']] = number
+            CODE_PATHS[e['key']] = Path(f'{i:02d}_{filename_title(chapter)}') / f'{number} {filename_title(e["title"])}.cpp'
+if len({p.as_posix().casefold() for p in CODE_PATHS.values()}) != len(CODE_PATHS):
+    raise ValueError('Duplicate output path')
+
+# Dependencies are expanded in standalone programs and imported in test adapters.
+DEPS = {
+    'kruskal': [('dsu', ['init', 'find', 'merge'])],
+    'fermat': [('qpow', ['qpow'])],
+    'comb': [('qpow', ['qpow'])],
+    'lucas': [('comb', ['Comb'])],
+    'ntt': [('qpow', ['qpow'])],
+    'twosat': [('scc', ['SCC'])],
+    'virtual': [('hld', ['HLD'])],
+    'tree_point_diff': [('hld', ['HLD'])],
+    'tree_edge_diff': [('hld', ['HLD'])],
+    'crt': [('modular', ['exgcd'])],
+    'factor': [('primality', ['u128', 'mul', 'pw', 'is_prime'])],
+    'bounded': [('knapsack', ['zero_one'])],
+    'intgeo': [('geo_int', ['Point', 'cross', 'sign', 'on_segment'])],
+    'hull': [('geo_int', ['Point', 'cross'])],
+    'polygon': [('geo_int', ['Point'])],
+    'point_location': [('geo_int', ['Point', 'cross', 'on_segment'])],
+    'diameter': [('geo_int', ['Point', 'cross'])],
+    'floatgeo': [('geo_float', ['P', 'ld', 'cross', 'dot', 'EPS'])],
+    'circle': [('geo_float', ['P', 'ld', 'cross', 'dot', 'EPS'])],
+    'halfplane': [('geo_float', ['P', 'ld', 'cross', 'dot', 'EPS'])],
 }
-SEGMENTTREE_COMBINED_PATH = CODE_PATHS['lazyseg']
-CODE_PATHS['lazyseg'] = SEGMENTTREE_COMBINED_PATH.with_name('2.5.1 带懒标记线段树（segmenttree）.cpp')
-CODE_PATHS['segtree'] = SEGMENTTREE_COMBINED_PATH.with_name('2.5.2 无懒标记线段树（SegTree）.cpp')
-INVERSE_COMBINED_PATH = CODE_PATHS['modular']
-CODE_PATHS['fermat'] = INVERSE_COMBINED_PATH.with_name('5.2.1 费马小定理求逆元.cpp')
-CODE_PATHS['modular'] = INVERSE_COMBINED_PATH.with_name('5.2.2 扩展欧几里得求逆元.cpp')
-BY_KEY['fermat'] = dict(code=BY_KEY['modular']['code'])
-if len({path.as_posix().casefold() for path in CODE_PATHS.values()}) != len(CODE_PATHS):
-    raise ValueError('Duplicate algorithm output paths')
+
 
 def render_code_paths(text):
     for key, path in CODE_PATHS.items():
-        text = text.replace(f'{{{{code:{key}}}}}', '代码/' + path.as_posix())
+        text = text.replace('{{code:' + key + '}}', '代码/' + path.as_posix())
+        text = text.replace('{{section:' + key + '}}', NUMBERS[key])
     return text
 
-def render_code_links(text, prefix=''):
+
+def render_code_links(text, prefix='', chapter=None):
     for key, path in CODE_PATHS.items():
         target = quote(prefix + '代码/' + path.as_posix(), safe='/')
-        text = text.replace(f'{{{{code-link:{key}}}}}', f'[完整代码：{path.name}]({target})')
+        text = text.replace('{{code-link:' + key + '}}', f'[完整代码：{path.name}]({target})')
+        dependency_target = '#algorithm-' + key
+        target_chapter = BY_KEY[key]['chapter']
+        if chapter is not None and target_chapter != chapter:
+            chapter_number = list(GROUPS).index(target_chapter) + 1
+            dependency_target = quote(f'{chapter_number:02d}_{target_chapter}.md', safe='') + dependency_target
+        text = text.replace('{{dependency-link:' + key + '}}',
+                            f'[查看 {NUMBERS[key]}「{BY_KEY[key]["title"]}」]({dependency_target})')
+    text = render_code_paths(text)
+    if re.search(r'\{\{(?:code|code-link|section|dependency-link):', text):
+        raise ValueError('Unresolved documentation reference')
     return text
 
-def implementation_sections(chapter_number, item_number, item):
-    """Share implementation titles and stable anchors between contents and body."""
-    prefix = f'{chapter_number}.{item_number}'
-    sections = []
-    title = item.get('subsection_title') or item.get('code_title')
-    if title:
-        if item.get('numbered_subsections'):
-            title = f'{prefix}.1 {title}'
-        sections.append((title, f'algorithm-{item["key"]}-1'))
-    for index, variant in enumerate(item.get('variants', []), 2):
-        title = variant['title']
-        if item.get('numbered_subsections'):
-            title = f'{prefix}.{index} {title}'
-        sections.append((title, f'algorithm-{item["key"]}-{index}'))
-    return sections
-
-def algorithm_contents(chapter_number, items):
-    """List every entry and implementation without chapter-only navigation."""
-    lines = []
-    for j, item in enumerate(items, 1):
-        lines.append(f'- [{chapter_number}.{j} {item["title"]}](#algorithm-{item["key"]})')
-        for title, anchor in implementation_sections(chapter_number, j, item):
-            lines.append(f'  - [{title}](#{anchor})')
-    return '\n'.join(lines) + '\n'
-
-DEPS = {
-    'kruskal': ('dsu', ['init', 'find', 'merge']),
-    'fermat': ('qpow', ['qpow']),
-    'comb': ('qpow', ['qpow']),
-    'ntt': ('qpow', ['qpow']),
-    'twosat': ('scc', ['SCC']),
-    'virtual': ('hld', ['HLD']),
-    'crt': ('modular', ['exgcd']),
-    'polygon': ('intgeo', ['Point', 'cross', 'on_segment']),
-    'halfplane': ('floatgeo', ['P', 'ld', 'cross', 'dot', 'EPS']),
-}
 
 def algorithm_body(key):
-    item = BY_KEY[key]
-    if key == 'modular':
-        return render_code_paths(item['variants'][0]['code'])
-    return render_code_paths('\n\n'.join([item['code']] + [v['code'] for v in item.get('variants', [])]))
+    return render_code_paths(HELPERS[key] if key in HELPERS else BY_KEY[key]['code'])
+
 
 def algorithm_blocks(key, emitted=None, active=None):
-    """Expand dependencies once when generating a standalone contest file."""
     if emitted is None:
         emitted = set()
     if active is None:
         active = set()
     if key in active:
-        raise ValueError(f'Cyclic algorithm dependency: {key}')
+        raise ValueError(f'Cyclic dependency: {key}')
     if key in emitted:
         return ''
     active.add(key)
     result = ''
-    if key in DEPS:
-        dep, _ = DEPS[key]
+    for dep, _ in DEPS.get(key, []):
         result += algorithm_blocks(dep, emitted, active)
+        if dep in CODE_PATHS:
+            result += f'// 依赖手册 {NUMBERS[dep]}「{BY_KEY[dep]["title"]}」，以上已展开其实现。\n'
     result += algorithm_body(key) + '\n\n'
     active.remove(key)
     emitted.add(key)
     return result
 
+
 def standalone_source(key):
-    if 'solve' in BY_KEY.get(key, {}):
+    if key == 'starter':
+        return STARTER + '\n'
+    body = algorithm_blocks(key)
+    if 'solve' in BY_KEY[key]:
         main = 'signed main()' + ENTRYPOINT.split('signed main()', 1)[1]
-        return PRELUDE.rstrip() + '\n\n' + algorithm_blocks(key) + BY_KEY[key]['solve'] + '\n\n' + main + '\n'
-    if key in ('lazyseg', 'segtree'):
-        item = BY_KEY['lazyseg']
-        body = item['code'] if key == 'lazyseg' else item['variants'][0]['code']
-        return PRELUDE.rstrip() + '\n\n' + body + '\n\nvoid solve()' + ENTRYPOINT + '\n'
-    return PRELUDE.rstrip() + '\n\n' + algorithm_blocks(key) + 'void solve()' + ENTRYPOINT + '\n'
+        return PRELUDE.rstrip() + '\n\n' + body + BY_KEY[key]['solve'] + '\n\n' + main + '\n'
+    return PRELUDE.rstrip() + '\n\n' + body + 'void solve()' + ENTRYPOINT + '\n'
+
 
 def verification_header():
-    """Keep namespace isolation in test infrastructure, outside contest templates."""
-    text = '// 自动生成，仅供测试；写题请使用代码目录中的独立程序。\n#pragma once\n' + PRELUDE
+    text = '// 自动生成，仅供测试；写题使用独立 cpp。\n#pragma once\n' + PRELUDE
     emitted = set()
     def append(key):
         nonlocal text
         if key in emitted:
             return
         imports = ''
-        if key in DEPS:
-            dep, names = DEPS[key]
+        for dep, names in DEPS.get(key, []):
             append(dep)
-            imports = ''.join(f'using cp_{dep}::{name};\n' for name in names)
-        # Check that the exact body used in the adapter exists in the generated program.
-        source = (OUT/'代码'/CODE_PATHS[key]).read_text(encoding='utf-8')
+            imports += ''.join(f'using cp_{dep}::{name};\n' for name in names)
         body = algorithm_body(key)
-        if key == 'lazyseg':
-            plain_source = (OUT/'代码'/CODE_PATHS['segtree']).read_text(encoding='utf-8')
-            if BY_KEY[key]['code'] not in source or BY_KEY[key]['variants'][0]['code'] not in plain_source:
-                raise ValueError('Generated segment tree body mismatch')
-        elif body not in source:
-            raise ValueError(f'Generated algorithm body mismatch: {key}')
-        if key != 'lazyseg':
-            body = f'namespace cp_{key} {{\n' + imports + body + '\n}\n'
-        text += '\n' + body + '\n'
+        if key in CODE_PATHS:
+            source = (OUT/'代码'/CODE_PATHS[key]).read_text(encoding='utf-8')
+            if body not in source:
+                raise ValueError(f'Test adapter differs from actual program: {key}')
+        text += f'\nnamespace cp_{key} {{\n' + imports + body + '\n}\n'
         emitted.add(key)
     for key in BY_KEY:
         if key != 'starter':
             append(key)
+    # Existing segment-tree tests use the public global class names.
+    text += '\nusing cp_lazyseg::segmenttree;\nusing cp_segtree::SegTree;\n'
     return text
 
-def main():
-    (OUT/'代码').mkdir(parents=True, exist_ok=True)
-    (OUT/'章节').mkdir(exist_ok=True)
-    (OUT/'测试').mkdir(exist_ok=True)
-    groups=GROUPS
-    full=['# ICPC / CCPC 算法模板手册\n',
-          '> C++17 · 个人可编辑版 v1.3 · 2026-10-09\n',
-          '## 阅读约定\n',
-          '- 普通数组、图和树顶点使用 **1..n**；数组查询为闭区间 **[l,r]**。普通输入数组分配 n+1 个位置，忽略 a[0]。字符串仍从 0 开始。\n'
-          '- 下标用 `int`；`i64`、`i128`、`u64` 分别为 `long long`、`__int128_t`、`unsigned long long` 的别名。`// #define int long long` 保持注释，默认不启用。\n'
-          '- 所有代码片段依赖第一节公共头文件，使用整数别名时还需保留对应的 using 定义；少数模板还依赖其他条目，已明确标注。\n'
-          '- 字符串、多项式次数、位掩码和 DP 容量等按数学含义保留 0；无占位列表和内部缓冲区的例外在各节注明。\n'
-          '- “模板能编译”不代表可以无条件套用。使用前检查数值范围、前置条件和复杂度。\n'
-          '- 本手册按竞赛使用场景重新组织、编写；参考 PDF 仅用于确认手册形式，未逐页复制。\n'
-          '- `代码/` 按本手册章节分目录，文件名为“章节序号 算法标题.cpp”；Windows 不允许的文件名字符改用全角字符。每份算法均带完整起手式及展开的依赖，直接使用全局函数或类名，在 `solve()` 中写题并单独编译；不包含其他算法文件。手册代码片段省略起手式。\n',
-          '## 目录\n']
-    for i,(chapter,items) in enumerate(groups.items(),1):
-        full.append(f'- [{i}. {chapter}](#chapter-{i})（{len(items)} 项）\n' +
-                    '\n'.join('  ' + line for line in algorithm_contents(i, items).splitlines()) + '\n')
-    headers=[]
-    for i,(chapter,items) in enumerate(groups.items(),1):
-        chunk=[f'<a id="chapter-{i}"></a>\n\n# {i}. {chapter}\n']
-        for j,e in enumerate(items,1):
-            key=e['key']
-            sections = dict((anchor, title) for title, anchor in implementation_sections(i, j, e))
-            chunk.append(f'\n<a id="algorithm-{key}"></a>\n\n## {i}.{j} {e["title"]}\n')
-            if key not in ('lazyseg', 'modular'):
-                chunk.append('{{code-link:' + key + '}}\n')
-            if e.get('intro'):
-                chunk.append(e['intro'])
-            if e.get('numbered_subsections'):
-                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
-                if key == 'lazyseg':
-                    chunk.append('{{code-link:lazyseg}}\n')
-            if e.get('subsection_title'):
-                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
-                if key == 'modular':
-                    chunk.append('{{code-link:fermat}}\n')
-            chunk.extend([f'**用途与条件**：{e["use"]}\n',
-                          f'**复杂度**：{e["cost"]}\n',
-                          f'**易错点**：{e["pitfalls"]}\n'])
-            if e.get('code_title') and not e.get('numbered_subsections'):
-                chunk.append(f'<a id="algorithm-{key}-1"></a>\n\n### {sections[f"algorithm-{key}-1"]}\n')
-            chunk.extend([
-                          f'```cpp\n{e["code"]}\n```\n',
-                          f'**调用与说明**：{e["example"]}\n'])
-            if e.get('code_after'):
-                chunk.append(e['code_after'])
-            for variant_index, variant in enumerate(e.get('variants', []), 2):
-                anchor = f'algorithm-{key}-{variant_index}'
-                chunk.append(f'<a id="{anchor}"></a>\n\n### {sections[anchor]}\n')
-                if key == 'lazyseg':
-                    chunk.append('{{code-link:segtree}}\n')
-                if key == 'modular':
-                    chunk.append('{{code-link:modular}}\n')
-                for field, label in [('use', '用途与条件'), ('cost', '复杂度'), ('pitfalls', '易错点')]:
-                    if field in variant:
-                        chunk.append(f'**{label}**：{variant[field]}\n')
-                chunk.extend([f'```cpp\n{variant["code"]}\n```\n',
-                              f'**调用与说明**：{variant["example"]}\n'])
-                if variant.get('after'):
-                    chunk.append(variant['after'])
-            if e.get('after'):
-                chunk.append(e['after'])
-            destination = OUT / '代码' / CODE_PATHS[key]
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            source = e['code']+'\n' if key == 'starter' else standalone_source(key)
-            destination.write_text(source, encoding='utf-8')
-            if key != 'starter':
-                headers.append(CODE_PATHS[key].as_posix())
-            if key == 'lazyseg':
-                (OUT/'代码'/CODE_PATHS['segtree']).write_text(standalone_source('segtree'), encoding='utf-8')
-                headers.append(CODE_PATHS['segtree'].as_posix())
-            if key == 'modular':
-                (OUT/'代码'/CODE_PATHS['fermat']).write_text(standalone_source('fermat'), encoding='utf-8')
-                headers.append(CODE_PATHS['fermat'].as_posix())
-        content=render_code_paths('\n'.join(chunk))
-        chapter_content = render_code_paths('\n'.join([
-            chunk[0], '## 本章算法目录\n', algorithm_contents(i, items), *chunk[1:]
-        ]))
-        (OUT/f'章节/{i:02d}_{chapter}.md').write_text(render_code_links(chapter_content, '../'),encoding='utf-8')
-        full.append(content)
-    appendix=(ROOT/'appendix.md').read_text(encoding='utf-8')
-    full.append(appendix)
-    (OUT/'算法模板手册.md').write_text(render_code_links(render_code_paths('\n'.join(full))),encoding='utf-8')
-    (OUT/'测试/algorithm_adapters.hpp').write_text(verification_header(), encoding='utf-8')
-    (OUT/'测试/segmenttree_adapter.hpp').write_text('// 自动生成，仅供线段树专项测试。\n#pragma once\n' + algorithm_body('lazyseg') + '\n', encoding='utf-8')
-    combined_path = (OUT/'代码'/SEGMENTTREE_COMBINED_PATH).resolve()
-    expected_parent = (OUT/'代码'/CODE_PATHS['lazyseg'].parent).resolve()
-    if combined_path.parent != expected_parent or combined_path.name != '2.5 线段树.cpp':
-        raise ValueError('Unexpected combined segment tree path')
-    combined_path.unlink(missing_ok=True)
-    inverse_combined = (OUT/'代码'/INVERSE_COMBINED_PATH).resolve()
-    if inverse_combined.parent != (OUT/'代码'/CODE_PATHS['modular'].parent).resolve() or inverse_combined.name != '5.2 逆元.cpp':
-        raise ValueError('Unexpected combined inverse path')
-    inverse_combined.unlink(missing_ok=True)
-    # Remove only known flat-layout files after their replacements have been written.
-    code_dir = (OUT/'代码').resolve()
-    legacy_names = ['contest.cpp', 'all.hpp', 'common.hpp'] + [f'{key}.{ext}' for key in BY_KEY if key != 'starter' for ext in ('cpp', 'hpp')]
-    for filename in legacy_names:
-        obsolete = (code_dir / filename).resolve()
-        if obsolete.parent != code_dir:
-            raise ValueError(f'Unexpected output path: {obsolete}')
-        obsolete.unlink(missing_ok=True)
-    print(f'Generated {len(ENTRIES)} entries, {len(headers)} algorithm files, {len(groups)} chapters in {OUT}')
 
-if __name__=='__main__': main()
+def contents(i, sections):
+    lines = []
+    for j, (title, methods) in enumerate(sections.items(), 1):
+        grouped = 'section' in methods[0]
+        target = 'section-' + methods[0]['key'] if grouped else 'algorithm-' + methods[0]['key']
+        lines.append(f'- [{i}.{j} {title}](#{target})')
+        if grouped:
+            for e in methods:
+                lines.append(f'  - [{NUMBERS[e["key"]]} {e["title"]}](#algorithm-{e["key"]})')
+    return '\n'.join(lines) + '\n'
+
+
+def render_method(e, level):
+    key = e['key']
+    lines = [f'<a id="algorithm-{key}"></a>\n', f'{"#"*level} {NUMBERS[key]} {e["title"]}\n', '{{code-link:' + key + '}}\n']
+    if e.get('intro'):
+        lines.append(e['intro'])
+    for field, label in [('use','用途与条件'), ('cost','复杂度'), ('pitfalls','易错点')]:
+        lines.append(f'**{label}**：{e[field]}\n')
+    deps = [dep for dep, _ in DEPS.get(key, []) if dep in CODE_PATHS]
+    if deps:
+        lines.append('**依赖**：' + '、'.join('{{dependency-link:' + d + '}}' for d in deps) + '；完整代码已展开依赖，可单独使用。\n')
+    helper_code = '\n\n'.join(HELPERS[d] for d, _ in DEPS.get(key, []) if d in HELPERS)
+    snippet = (helper_code + '\n\n' if helper_code else '') + e['code']
+    lines.extend([f'```cpp\n{snippet}\n```\n', f'**调用与说明**：{e["example"]}\n'])
+    for field in ('code_after', 'after'):
+        if e.get(field):
+            # Explanatory headings remain below the method heading.
+            lines.append(re.sub(r'^#{3,4} ', '#'*(level+1)+' ', e[field], flags=re.M))
+    return '\n'.join(lines)
+
+
+def remove_obsolete(expected):
+    """Remove only paths previously generated by this project, within code root."""
+    code_root = (OUT/'代码').resolve()
+    manifest = OUT/'代码文件清单.json'
+    previous = json.loads(manifest.read_text(encoding='utf-8')) if manifest.exists() else []
+    # One-time migration list is explicit; never enumerate arbitrary files for deletion.
+    legacy = ROOT/'legacy_code_paths.json'
+    if legacy.exists():
+        previous += json.loads(legacy.read_text(encoding='utf-8'))
+    for relative in set(previous) - set(expected):
+        path = (code_root/relative).resolve()
+        if not path.is_relative_to(code_root) or path.suffix != '.cpp':
+            raise ValueError(f'Unsafe obsolete path: {relative}')
+        path.unlink(missing_ok=True)
+    manifest.write_text(json.dumps(expected, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+
+
+def main():
+    for folder in ('代码', '章节', '测试'):
+        (OUT/folder).mkdir(parents=True, exist_ok=True)
+    full = ['# ICPC / CCPC 算法模板手册\n', '> C++17 · 个人可编辑版 · 2026-10-11\n',
+            '## 阅读约定\n',
+            '- 普通数组、图和树顶点使用 **1..n**，数组查询默认闭区间 **[l,r]**；字符串、多项式系数等例外按各节说明。\n'
+            '- 起手式保留 `i64`、`i128`、`u64`；`// #define int long long` 默认注释。使用前检查数值范围、前置条件和复杂度。\n'
+            '- 同一问题的不同方法放在同一节的不同小标题下，每个方法各有独立 `.cpp`。背包、博弈小标题注明不同问题变体。\n'
+            '- 每份程序包含完整起手式和必要依赖，在 `solve()` 中写题后单独编译；手册片段省略起手式及已列出的依赖。\n'
+            '- 几何片段共用点、叉积等基础定义；完整文件已包含这些定义。文件名为对应手册编号和算法名，目录保留章节大标题。\n',
+            '## 目录\n']
+    for i, (chapter, sections) in enumerate(GROUPS.items(), 1):
+        full.append(f'- [{i}. {chapter}](#chapter-{i})\n' + '\n'.join('  '+s for s in contents(i, sections).splitlines())+'\n')
+    for i, (chapter, sections) in enumerate(GROUPS.items(), 1):
+        header = f'<a id="chapter-{i}"></a>\n\n# {i}. {chapter}\n'
+        body = []
+        for j, (title, methods) in enumerate(sections.items(), 1):
+            grouped = 'section' in methods[0]
+            if grouped:
+                body.append(f'<a id="section-{methods[0]["key"]}"></a>\n\n## {i}.{j} {title}\n')
+            for e in methods:
+                body.append(render_method(e, 3 if grouped else 2))
+        content = '\n'.join(body)
+        full.append(header+'\n'+content)
+        chapter_text = header+'\n## 本章算法目录\n\n'+contents(i,sections)+'\n'+content
+        (OUT/'章节'/f'{i:02d}_{chapter}.md').write_text(render_code_links(chapter_text,'../',chapter=chapter),encoding='utf-8')
+    full.append((ROOT/'appendix.md').read_text(encoding='utf-8'))
+    (OUT/'算法模板手册.md').write_text(render_code_links('\n'.join(full)),encoding='utf-8')
+    for key, path in CODE_PATHS.items():
+        dest = OUT/'代码'/path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(standalone_source(key),encoding='utf-8')
+    (OUT/'测试/algorithm_adapters.hpp').write_text(verification_header(),encoding='utf-8')
+    (OUT/'测试/segmenttree_adapter.hpp').write_text('// 自动生成，仅供线段树测试。\n#pragma once\n'+algorithm_body('lazyseg')+'\n'+algorithm_body('segtree')+'\n',encoding='utf-8')
+    remove_obsolete([p.as_posix() for p in CODE_PATHS.values()])
+    print(f'Generated {len(CODE_PATHS)} standalone programs and {len(GROUPS)} chapters.')
+
+
+if __name__ == '__main__':
+    main()
