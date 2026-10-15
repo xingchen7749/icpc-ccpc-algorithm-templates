@@ -7,7 +7,9 @@ using u64 = unsigned long long;
 
 // 返回前缀函数 pi，pi[i] 是 s[0..i] 的最长真前缀与后缀的公共长度。
 // 字符串和返回数组均为 0 下标，空串返回空数组；时间和空间 O(|s|)。
+// KMP（Knuth–Morris–Pratt）：字符串匹配算法，以三位提出者的姓氏命名。
 vector<int> prefix_function(const string& s) {
+    // pi[i]：s[0..i] 的最长相等真前缀与真后缀的长度，不包含整个串自身。
     vector<int> pi(s.size());
     for (int i = 1; i < (int)s.size(); ++i) {
         int j = pi[i - 1];

@@ -6,6 +6,8 @@ using u64 = unsigned long long;
 // #define int long long
 
 struct XorBasis {
+    // b[i]：最高有效位为 i 的基向量，0 表示该位置尚无基向量。
+    // XOR（Exclusive OR）：按位异或。
     array<u64, 64> b{};
     // 将 x 加入异或线性基；使线性空间维数增加时返回 true，否则返回 false。
     // 会修改基向量，处理完整 64 位无符号范围，时间 O(64)。

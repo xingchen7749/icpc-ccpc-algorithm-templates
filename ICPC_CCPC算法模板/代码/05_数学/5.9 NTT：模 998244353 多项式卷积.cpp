@@ -26,6 +26,8 @@ const int MOD = 998244353;
 // 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp），复制本节时一并复制。
 // 对系数数组 a 原地做 NTT；inv=false 为正变换，true 为逆变换并乘长度逆元。
 // 要求长度是 1..2^23 内的二次幂，系数在 [0,998244353)；时间 O(n log n)。
+// NTT（Number Theoretic Transform）：数论变换，在有限域中进行离散变换。
+// inv（inverse）：是否执行逆变换，true 表示逆变换。
 void ntt(vector<int>& a, bool inv) {
     int n = a.size();
     assert(n > 0 && (n & (n - 1)) == 0 && n <= (1 << 23));

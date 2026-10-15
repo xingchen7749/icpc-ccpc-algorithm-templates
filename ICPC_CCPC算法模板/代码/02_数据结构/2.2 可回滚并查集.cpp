@@ -5,8 +5,11 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// DSU（Disjoint Set Union）：并查集；Rollback 表示支持回滚。
 struct RollbackDSU {
+    // father[x]：父节点；sz[root]：根对应的集合大小。
     vector<int> father, sz;
+    // hist（history）：成功合并的历史，保存被挂接的根及合并前另一集合的大小。
     vector<pair<int, int>> hist;
     // 创建编号 1..n 的独立集合并清空合并历史，时间和空间 O(n)。
     RollbackDSU(int n) : father(n + 1), sz(n + 1, 1) {

@@ -31,6 +31,7 @@ bool on_segment(Point p, Point a, Point b) {
 // 判断点 q 与简单多边形 p 的位置关系：0 为外部、1 为边界、2 为内部。
 // p 是按边界顺序排列的无占位循环列表，顺逆时针均可；时间 O(n)。
 int inside(const vector<Point>& p, Point q) {
+    // wn（winding number）：绕数；点不在边界时，非零表示在多边形内部。
     int wn = 0, n = p.size();
     for (int i = 0; i < n; ++i) {
         Point a = p[i], b = p[(i + 1) % n];

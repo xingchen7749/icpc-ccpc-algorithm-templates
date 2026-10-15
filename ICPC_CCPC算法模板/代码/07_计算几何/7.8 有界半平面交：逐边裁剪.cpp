@@ -6,7 +6,9 @@ using u64 = unsigned long long;
 // #define int long long
 
 
+// ld（long double）：扩展精度浮点类型；P（point）：二维点，也用于表示向量。
 using ld = long double;
+// EPS（epsilon）：浮点比较容差，需结合题目坐标尺度选择。
 const ld EPS = 1e-12L;
 struct P {
     ld x, y;
@@ -34,7 +36,9 @@ vector<P> clip_halfplane(const vector<P>& poly, P a, P b) {
     assert(dot(v, v) > 0);
     for (int i = 0; i < n; ++i) {
         P p = poly[i], q = poly[(i + 1) % n];
+        // dp、dq：点 p、q 相对裁剪直线的有向叉积值，此处 dp 不是动态规划。
         ld dp = cross(v, p - a), dq = cross(v, q - a);
+        // ip、iq：对应端点是否位于保留半平面内，包含容差范围内的边界。
         bool ip = dp >= -EPS, iq = dq >= -EPS;
         if (ip) out.push_back(p);
         if (ip != iq) {

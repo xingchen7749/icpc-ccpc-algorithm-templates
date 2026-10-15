@@ -5,9 +5,14 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// SCC（Strongly Connected Component）：强连通分量；此处采用 Kosaraju 算法。
+// DFS（Depth-First Search）：深度优先搜索，本实现用显式栈模拟。
 struct SCC {
+    // cc：强连通分量数量，已分配的分量编号为 0..cc-1。
     int n, cc = 0;
+    // g：原图；rg（reverse graph）：将全部有向边反转后的图。
     vector<vector<int>> g, rg;
+    // comp[u]：顶点 u 所属分量的编号，-1 表示尚未分配。
     vector<int> comp;
     // 初始化编号 1..n 的有向图和反图；时间和空间 O(n)。
     SCC(int n) : n(n), g(n + 1), rg(n + 1) {}
@@ -22,9 +27,11 @@ struct SCC {
     void build() {
         cc = 0;
         vector<char> vis(n + 1);
+        // order：第一遍 DFS 的完成顺序，反转后用于第二遍遍历。
         vector<int> order;
         for (int s = 1; s <= n; ++s) {
             if (!vis[s]) {
+                // st：模拟递归的栈；每项保存顶点和下一条待处理邻边的下标。
                 vector<pair<int, int>> st{{s, 0}};
                 vis[s] = 1;
                 while (!st.empty()) {

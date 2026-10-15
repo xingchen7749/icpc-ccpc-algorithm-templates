@@ -7,7 +7,10 @@ using u64 = unsigned long long;
 
 // 返回字符串 a、b 的最长公共子序列长度，允许不连续；空串对应答案 0。
 // 滚动数组不保存恢复方案所需的信息；时间 O(|a|*|b|)，空间 O(|b|)。
+// LCS（Longest Common Subsequence）：最长公共子序列。
+// DP（Dynamic Programming）：动态规划。
 int lcs(const string& a, const string& b) {
+    // dp[j]：当前已处理的 a 前缀与 b 的前 j 个字符的 LCS 长度，原地滚动更新。
     vector<int> dp(b.size() + 1);
     for (char x : a) {
         int diag = 0;

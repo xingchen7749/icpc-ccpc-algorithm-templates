@@ -9,11 +9,14 @@ const i64 INF = (1LL << 62);
 
 struct Dinic {
     struct E {
+        // E（edge）：残量边；v：终点；rev：反向边在 g[v] 中的下标。
         int v, rev;
+        // cap（capacity）：当前剩余容量，增广时会改变。
         i64 cap;
     };
     int n;
     vector<vector<E>> g;
+    // level[u]：层次图中的层数，-1 表示不可达；it[u]：当前弧的邻接表下标。
     vector<int> level, it;
     // 创建 n 个顶点的空残量网络及层次、当前弧数组，顶点编号为 1..n。
     Dinic(int n) : n(n), g(n + 1), level(n + 1), it(n + 1) {}
@@ -26,6 +29,7 @@ struct Dinic {
         g[v].push_back({u, a, 0});
     }
     // 内部建层：沿正残量边从 s 广搜，更新 level，返回汇点 t 是否可达；时间 O(n+m)。
+    // BFS（Breadth-First Search）：广度优先搜索，用于构造层次图。
     bool bfs(int s, int t) {
         fill(level.begin(), level.end(), -1);
         queue<int> q;
@@ -45,6 +49,7 @@ struct Dinic {
     }
     // 在层次图中从 u 向汇点 t 尝试推送至多 f 流量，返回实际流量并更新正反残量。
     // 使用当前弧 it 跳过已尝试边；要求先 bfs 建层并初始化 it。
+    // DFS（Depth-First Search）：深度优先搜索，用于沿层次图增广。
     i64 dfs(int u, int t, i64 f) {
         if (u == t) return f;
         for (int& i = it[u]; i < (int)g[u].size(); ++i) {

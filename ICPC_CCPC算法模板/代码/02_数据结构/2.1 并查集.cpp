@@ -5,6 +5,9 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// DSU（Disjoint Set Union）：并查集。
+// father[x]：父节点；根节点的父节点是自身。
+// rk（rank）：合并使用的秩，不是集合大小；sz[root]：根对应的集合大小。
 vector<int> father, rk, sz;
 
 // 初始化编号 1..n 的独立集合，初始秩和集合大小均为 1；时间和空间 O(n)。

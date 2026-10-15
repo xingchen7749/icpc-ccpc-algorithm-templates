@@ -37,8 +37,11 @@ optional<i64> inverse(i64 a, i64 m) {
 
 // 依赖手册 5.2.2「扩展欧几里得求逆元」，以上已展开其实现。
 // 依赖 exgcd：见 5.2.2「扩展欧几里得求逆元」（代码/05_数学/5.2.2 扩展欧几里得求逆元.cpp）。
+// CRT（Chinese Remainder Theorem）：中国剩余定理，此处支持非互质模数的扩展形式。
 struct CRTResult {
+    // status：0 无解、1 成功、2 合并模数溢出；只有成功时才使用 r、m。
     int status;
+    // r：规范化余数；m：合并后的模数，成功时解为 x ≡ r (mod m)。
     i64 r, m;
 };
 // 合并 x≡a(mod m) 与 x≡b(mod n)，要求 m,n>0，允许模数不互质。

@@ -5,10 +5,16 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// SCC（Strongly Connected Component）：强连通分量；此处采用 Tarjan 算法。
+// DFS（Depth-First Search）：深度优先搜索。
 struct TarjanSCC {
     int n, cc = 0, timer = 0;
     vector<vector<int>> g;
+    // dfn[u]：首次访问时间戳，0 表示未访问；low[u]：按 Tarjan 转移维护的可达最小时间戳。
+    // st：尚未归属分量的顶点栈；comp[u]：所属强连通分量编号。
+    // cc：分量数量；timer：DFS 时间戳计数器。
     vector<int> dfn, low, st, comp;
+    // in_stack[u]：u 是否仍在分量栈中；已出栈顶点不能用于降低 low。
     vector<char> in_stack;
     // 初始化编号 1..n 的有向图；遍历数组在 build 中初始化。
     TarjanSCC(int n) : n(n), g(n + 1) {}
@@ -28,7 +34,7 @@ struct TarjanSCC {
                 low[u] = min(low[u], low[v]);
             }
             else if (in_stack[v]) {
-                // Only vertices still in the SCC stack can lower low[u].
+                // 只有仍在分量栈中的顶点才能用于降低 low[u]，避免合并已完成的分量。
                 low[u] = min(low[u], dfn[v]);
             }
         }

@@ -5,6 +5,7 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// DP（Dynamic Programming）：动态规划；李超树可维护直线形式的转移最小值。
 struct LiChao {
     struct Line {
         i64 k = 0, b = 0;
@@ -12,7 +13,9 @@ struct LiChao {
         i128 eval(i64 x) const { return i128(k) * x + b; }
     };
     const i128 INF = i128(1) << 126;
+    // xs：排序去重后的所有查询横坐标，下标从 0 开始。
     vector<i64> xs;
+    // t[p]：线段树节点保存的候选直线；has[p] 表示该节点是否已有直线。
     vector<Line> t;
     vector<char> has;
     // 收集全部将被查询的横坐标 x[1..m]，忽略 x[0]，排序去重后建立空李超树。

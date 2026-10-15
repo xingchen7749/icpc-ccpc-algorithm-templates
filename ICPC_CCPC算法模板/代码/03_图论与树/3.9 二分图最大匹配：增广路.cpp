@@ -8,6 +8,9 @@ using u64 = unsigned long long;
 struct BipartiteMatch {
     int nL, nR, timer = 0;
     vector<vector<int>> g;
+    // mr[v]：右侧顶点 v 匹配的左侧顶点，0 表示未匹配。
+    // seen[v]：右侧顶点最近被搜索的轮次；timer：当前搜索轮次。
+    // nL、nR：左右两侧的顶点数量，各自从 1 开始编号。
     vector<int> mr, seen;
     // 初始化左部 l 个点、右部 r 个点的二分图，两侧各从 1 编号；mr 初值为 -1。
     BipartiteMatch(int l, int r) : nL(l), nR(r), g(l + 1), mr(r + 1, -1), seen(r + 1) {}

@@ -87,21 +87,21 @@ int rank_of(const vector<T>& xs, T x) {
 add('基础与技巧',
     'prefix',
     '前缀和',
-    '输入数组 a[1..n]，构造 pre_sum[0]=0 的前缀和数组；闭区间 [l,r] 的和为 pre_sum[r]-pre_sum[l-1]，适合静态区间求和。',
+    '输入数组 a[1..n]，构造 pre[0]=0 的前缀和数组；闭区间 [l,r] 的和为 pre[r]-pre[l-1]，适合静态区间求和。',
     '构造时间和空间 O(n)，单次区间求和 O(1)。',
     '输入数组至少包含占位 a[0]，其值不参与计算。要求 1≤l≤r≤n；原数组修改后前缀和不会自动更新，累加及区间和必须在 i64 范围内。',
     r'''
-// 由 a[1..n] 构造前缀和 pre_sum，pre_sum[0]=0；[l,r] 的和为 pre_sum[r]-pre_sum[l-1]。
+// 由 a[1..n] 构造前缀和 pre，pre[0]=0；[l,r] 的和为 pre[r]-pre[l-1]。
 // 忽略 a[0]，不修改 a；要求累加不溢出 i64，时间和空间均为 O(n)。
 vector<i64> prefix_sum(const vector<i64>& a) {
-    vector<i64> pre_sum(a.size());
+    vector<i64> pre(a.size()); // pre[i]：a[1..i] 的和，pre[0]=0。
     for (int i = 1; i < (int)a.size(); ++i) {
-        pre_sum[i] = pre_sum[i - 1] + a[i];
+        pre[i] = pre[i - 1] + a[i];
     }
-    return pre_sum; // sum[l,r] = pre_sum[r]-pre_sum[l-1]
+    return pre; // sum[l,r] = pre[r]-pre[l-1]
 }
 ''',
-    'auto pre_sum = prefix_sum({0,1,2,3}); 得到 {0,1,3,6}；区间 [2,3] 的和为 pre_sum[3]-pre_sum[1]=5。')
+    'auto pre = prefix_sum({0,1,2,3}); 得到 {0,1,3,6}；区间 [2,3] 的和为 pre[3]-pre[1]=5。')
 
 add('基础与技巧',
     'difference',
@@ -202,6 +202,9 @@ add('数据结构',
     '均摊 O(α(n)) 每次操作；空间 O(n)。',
     '每组数据先调用 init(n)。rk 表示秩，路径压缩后不等于实际树高，也不是集合大小。只有根节点的 sz 才表示当前集合大小，应通过 size(id) 查询。merge 成功时可在调用处将连通块数量减一。普通并查集不能删除边；回滚版本不要使用路径压缩。',
     r'''
+// DSU（Disjoint Set Union）：并查集。
+// father[x]：父节点；根节点的父节点是自身。
+// rk（rank）：合并使用的秩，不是集合大小；sz[root]：根对应的集合大小。
 vector<int> father, rk, sz;
 
 // 初始化编号 1..n 的独立集合，初始秩和集合大小均为 1；时间和空间 O(n)。
@@ -253,8 +256,11 @@ add('数据结构',
     'find / merge O(log n)；回滚每次成功合并 O(1)；空间 O(n+操作数)。',
     '禁止路径压缩。失败的 merge 不入栈，所以应记录 snapshot 而非假定每次操作都对应一条历史。',
     r'''
+// DSU（Disjoint Set Union）：并查集；Rollback 表示支持回滚。
 struct RollbackDSU {
+    // father[x]：父节点；sz[root]：根对应的集合大小。
     vector<int> father, sz;
+    // hist（history）：成功合并的历史，保存被挂接的根及合并前另一集合的大小。
     vector<pair<int, int>> hist;
     // 创建编号 1..n 的独立集合并清空合并历史，时间和空间 O(n)。
     RollbackDSU(int n) : father(n + 1), sz(n + 1, 1) {
@@ -302,6 +308,8 @@ add('数据结构',
     r'''
 struct Fenwick {
     int n;
+    // t[i]：树状数组节点，维护原数组区间 [i-lowbit(i)+1,i] 的和。
+    // lowbit(i) = i & -i，表示 i 的最低有效二进制位对应的值。
     vector<i64> t;
     // 初始化长度为 n、下标为 1..n 的全零树状数组，时间和空间 O(n)。
     Fenwick(int n) : n(n), t(n + 1) {}
@@ -349,9 +357,12 @@ add('数据结构',
     '预处理 O(n log n)，查询 O(1)，空间 O(n log n)。',
     '输入至少包含 a[0] 占位和一个有效元素。构造时断言 a.size() >= 2，查询时断言 1 <= l <= r <= n；定义 NDEBUG 后断言禁用，调用者仍须保证这些条件。数组修改后需要重建。log2 的参数必须为正数。默认数据类型为 int。',
     r'''
+// ST（Sparse Table）：稀疏表，用于静态区间查询。
+// RMQ（Range Minimum Query）：区间最小值查询，本模板默认实现的操作。
 class ST {
 private:
     int n;
+    // st[i][j]：从 i 开始、长度为 2^j 的区间最小值。
     vector<vector<int>> st;
 
 public:
@@ -730,10 +741,13 @@ add('数据结构',
     r'''
 struct PersistentKth {
     struct Node {
+        // l、r：左右儿子的节点编号，0 表示空节点；cnt：该值域内的元素数量。
         int l = 0, r = 0, cnt = 0;
     };
     int m;
+    // t：可持久化节点池，0 号为空节点。
     vector<Node> t{{}};
+    // root[i]：插入前 i 个元素后的版本根；root[0] 表示空前缀。
     vector<int> root{0};
     // 设置离散值域为 1..m，创建空前缀版本 root[0]，要求 m>0。
     PersistentKth(int m) : m(m) {
@@ -793,6 +807,8 @@ add('数据结构',
     '本模板允许选择空集。第 k 小异或值需要进一步消元及明确是否计入空集，不能直接把基按大小排列。',
     r'''
 struct XorBasis {
+    // b[i]：最高有效位为 i 的基向量，0 表示该位置尚无基向量。
+    // XOR（Exclusive OR）：按位异或。
     array<u64, 64> b{};
     // 将 x 加入异或线性基；使线性空间维数增加时返回 true，否则返回 false。
     // 会修改基向量，处理完整 64 位无符号范围，时间 O(64)。
@@ -840,6 +856,7 @@ add('数据结构',
 // a 使用 1 下标且值在 1..m；非空查询满足 1<=l<=r<=n，不支持修改。
 vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>>& ranges) {
     int n = (int)a.size() - 1, q = ranges.size(), B = max(1, (int)sqrt(n));
+    // ord：查询的处理顺序；ans：按原查询编号保存答案；cnt[x]：当前区间中值 x 的频数。
     vector<int> ord(q), ans(q), cnt(m + 1);
     iota(ord.begin(), ord.end(), 0);
     // 按左端点分块，块内右端点交替升降序排序，减少窗口指针移动；x、y 是查询编号。
@@ -849,6 +866,7 @@ vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>
         if (l / B != L / B) return l / B < L / B;
         return (l / B & 1) ? r > R : r < R;
     });
+    // 当前窗口为 [l,r]，初始为空；cur：窗口内不同数值的数量。
     int l = 1, r = 0, cur = 0;
     // 把位置 i 纳入当前窗口，更新其频数；该值首次出现时增加不同值计数 cur。
     auto add = [&](int i) {
@@ -878,13 +896,19 @@ add('数据结构',
     '期望单次 O(log n)，空间 O(n)；随机优先级下深度期望 O(log n)。',
     'split 按元素个数分割。访问儿子前 push。合并要求 a 的全部元素在 b 之前。本实现不回收删除节点。',
     r'''
+// FHQ Treap：基于 split/merge 的无旋 Treap；FHQ 来自作者名 fhq。
+// Treap 由 Tree（树）和 Heap（堆）合成；隐式版本用中序位置表示序列下标。
 struct ImplicitTreap {
     struct Node {
+        // l、r：左右儿子编号，0 表示空树；sz：以当前节点为根的子树大小。
         int l = 0, r = 0, sz = 1;
+        // pri（priority）：随机优先级，维护堆性质。
         u64 pri = 0;
         i64 val = 0;
+        // rev（reverse）：待下传的区间翻转标记，不是反向下标。
         bool rev = false;
     };
+    // t：节点池，0 号为空节点；有效节点从 1 开始。
     vector<Node> t{{}};
     int root = 0;
     mt19937_64 rng{712367};
@@ -1020,9 +1044,11 @@ add('图论与树',
     r'''
 // 求源点 s 的 0/1 边权最短路；g 使用 1 下标，边记录为 {终点,0或1}。
 // 返回各点距离，不可达为 1LL<<62；不修改图，时间 O(n+m)。
+// BFS（Breadth-First Search）：广度优先搜索；0-1 BFS 用双端队列处理 0/1 边权。
 vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
     const i64 INF = (1LL << 62);
     vector<i64> dist(g.size(), INF);
+    // done[u]：顶点 u 是否已经确定最短距离并展开，防止重复处理。
     vector<char> done(g.size());
     deque<int> q;
     dist[s] = 0;
@@ -1095,8 +1121,11 @@ add('图论与树',
     r'''
 // 对 g[1..n] 做拓扑排序，返回无占位的顶点顺序列表；不修改图。
 // 返回长度不足 n 表示存在有向环，此时列表并非全图拓扑序；时间 O(n+m)。
+// DAG（Directed Acyclic Graph）：有向无环图。
+// DP（Dynamic Programming）：动态规划，可按 DAG 的拓扑序转移。
 vector<int> topo_sort(const vector<vector<int>>& g) {
     int n = (int)g.size() - 1;
+    // deg[u]：尚未删除的入边数量；ans：依次取出的拓扑序顶点。
     vector<int> deg(n + 1), ans;
     queue<int> q;
     for (auto& es : g) {
@@ -1175,9 +1204,14 @@ add('图论与树',
     '时间 O(n+m)，总空间 O(n+m)，保存原图和反图。',
     '跨分量边 u→v 满足 comp[u]<comp[v]；接口 add_edge、build、comp、cc。与 Tarjan 编号方向不同。',
     r'''
+// SCC（Strongly Connected Component）：强连通分量；此处采用 Kosaraju 算法。
+// DFS（Depth-First Search）：深度优先搜索，本实现用显式栈模拟。
 struct SCC {
+    // cc：强连通分量数量，已分配的分量编号为 0..cc-1。
     int n, cc = 0;
+    // g：原图；rg（reverse graph）：将全部有向边反转后的图。
     vector<vector<int>> g, rg;
+    // comp[u]：顶点 u 所属分量的编号，-1 表示尚未分配。
     vector<int> comp;
     // 初始化编号 1..n 的有向图和反图；时间和空间 O(n)。
     SCC(int n) : n(n), g(n + 1), rg(n + 1) {}
@@ -1192,9 +1226,11 @@ struct SCC {
     void build() {
         cc = 0;
         vector<char> vis(n + 1);
+        // order：第一遍 DFS 的完成顺序，反转后用于第二遍遍历。
         vector<int> order;
         for (int s = 1; s <= n; ++s) {
             if (!vis[s]) {
+                // st：模拟递归的栈；每项保存顶点和下一条待处理邻边的下标。
                 vector<pair<int, int>> st{{s, 0}};
                 vis[s] = 1;
                 while (!st.empty()) {
@@ -1246,10 +1282,16 @@ add('图论与树',
     '时间 O(n+m)，总空间 O(n+m)，递归深度最坏 O(n)。',
     '跨分量边 u→v 满足 comp[u]>comp[v]；长链可能使递归栈溢出。缩点后重边是否去重按题意决定。',
     r'''
+// SCC（Strongly Connected Component）：强连通分量；此处采用 Tarjan 算法。
+// DFS（Depth-First Search）：深度优先搜索。
 struct TarjanSCC {
     int n, cc = 0, timer = 0;
     vector<vector<int>> g;
+    // dfn[u]：首次访问时间戳，0 表示未访问；low[u]：按 Tarjan 转移维护的可达最小时间戳。
+    // st：尚未归属分量的顶点栈；comp[u]：所属强连通分量编号。
+    // cc：分量数量；timer：DFS 时间戳计数器。
     vector<int> dfn, low, st, comp;
+    // in_stack[u]：u 是否仍在分量栈中；已出栈顶点不能用于降低 low。
     vector<char> in_stack;
     // 初始化编号 1..n 的有向图；遍历数组在 build 中初始化。
     TarjanSCC(int n) : n(n), g(n + 1) {}
@@ -1269,7 +1311,7 @@ struct TarjanSCC {
                 low[u] = min(low[u], low[v]);
             }
             else if (in_stack[v]) {
-                // Only vertices still in the SCC stack can lower low[u].
+                // 只有仍在分量栈中的顶点才能用于降低 low[u]，避免合并已完成的分量。
                 low[u] = min(low[u], dfn[v]);
             }
         }
@@ -1341,9 +1383,11 @@ add('图论与树',
     '赋值方向依赖 SCC 编号顺序：默认 Kosaraju 用 <；若成员改为上一节 TarjanSCC，必须同时把赋值比较改为 >。强制 x=v 使用 clause(x,v,x,v)。',
     r'''
 // Dependency: SCC from the previous entry.
+// 2-SAT（2-Satisfiability）：每个子句至多包含两个文字的布尔可满足性问题。
 struct TwoSAT {
     int n;
     SCC s;
+    // value[i]：求解成功后第 i 个布尔变量的取值，0 为假、1 为真。
     vector<int> value;
     // 创建 n 个布尔变量的蕴含图，变量编号 1..n，每个变量对应两个图节点。
     TwoSAT(int n) : n(n), s(2 * n) {}
@@ -1379,7 +1423,11 @@ add('图论与树',
 struct LowLink {
     int n, timer = 0;
     vector<vector<pair<int, int>>> g;
+    // DFS（Depth-First Search）：深度优先搜索。
+    // dfn[u]：首次访问时间戳；low[u]：从子树经树边及至多一条返祖边可达的最小时间戳。
+    // bridges：桥的边编号列表；timer：访问时间戳计数器。
     vector<int> dfn, low, bridges;
+    // cut[u]：顶点 u 是否为割点。
     vector<char> cut;
     // 创建 n 个顶点的无向图，初始化访问时间、low 值和割点标记；点编号为 1..n。
     LowLink(int n) : n(n), g(n + 1), dfn(n + 1), low(n + 1), cut(n + 1) {}
@@ -1432,15 +1480,22 @@ add('图论与树',
     '预处理 O(n)；LCA O(log n)，路径拆分 O(log n) 段；结合线段树查询为 O(log² n)。',
     '子树为 [pos[u],pos[u]+sz[u]-1]。内部 ord、栈是无占位列表。path 各段无方向保证，只适合交换运算；路径字符串需单独处理方向。',
     r'''
+// HLD（Heavy-Light Decomposition）：树链剖分。
+// DFS（Depth-First Search）：深度优先搜索；DFS 序使子树对应连续区间。
 struct HLD {
     int n;
     vector<vector<int>> g;
+    // father[u]：父节点，根的父节点是自身；dep（depth）：深度，根为 0。
+    // sz（size）：子树大小，包含自身；heavy[u]：重儿子，-1 表示没有。
+    // head[u]：所在重链的链头；pos[u]：从 1 开始的 DFS 序编号。
+    // rev[i]：DFS 序编号为 i 的顶点，rev[pos[u]] = u。
     vector<int> father, dep, sz, heavy, head, pos, rev;
     // 以 root 为根对非空连通无向树 g[1..n] 做迭代树链剖分，构造父亲、深度和 dfs 序。
     // pos/rev 使用 1 下标，子树区间为 [pos[u],pos[u]+sz[u]-1]；时间和空间 O(n)。
     HLD(vector<vector<int>> g, int root = 1)
         : n((int)g.size() - 1), g(move(g)), father(n + 1, -1), dep(n + 1), sz(n + 1, 1),
           heavy(n + 1, -1), head(n + 1), pos(n + 1), rev(n + 1) {
+        // ord（order）：父节点先于子节点的遍历顺序，逆序处理即可汇总子树大小。
         vector<int> ord{root};
         father[root] = root;
         for (int i = 0; i < n; ++i) {
@@ -1478,6 +1533,7 @@ struct HLD {
         }
     }
     // 返回树上顶点 u、v 的最近公共祖先，要求顶点有效且已完成构造；时间 O(log n)。
+    // LCA（Lowest Common Ancestor）：最近公共祖先。
     int lca(int u, int v) {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);
@@ -1512,6 +1568,7 @@ add('图论与树',
 // 根据已预处理的 HLD 和关键点列表 v 构造虚树，自动补充必要 LCA 并去重。
 // 返回 {节点列表,父到子的虚边列表}，均保存原树的 1 下标编号；空关键点返回空结果。
 // 列表不带占位，非空时首节点为虚树根；k 个关键点耗时 O(k log k+k log n)。
+// LCA（Lowest Common Ancestor）：最近公共祖先；补齐相邻关键点的 LCA 以连接虚树。
 pair<vector<int>, vector<pair<int, int>>> virtual_tree(HLD& h, vector<int> v) {
     if (v.empty()) return {{}, {}};
     // 按原树 dfs 序比较顶点 a、b，保证关键点和补入的 LCA 按树上遍历顺序排列。
@@ -1524,6 +1581,7 @@ pair<vector<int>, vector<pair<int, int>>> virtual_tree(HLD& h, vector<int> v) {
     }
     sort(v.begin(), v.end(), cmp);
     v.erase(unique(v.begin(), v.end()), v.end());
+    // st：当前虚树构造路径上的祖先栈，按 DFS 序处理节点。
     vector<int> st;
     vector<pair<int, int>> edges;
     for (int u : v) {
@@ -1551,6 +1609,9 @@ add('图论与树',
 struct BipartiteMatch {
     int nL, nR, timer = 0;
     vector<vector<int>> g;
+    // mr[v]：右侧顶点 v 匹配的左侧顶点，0 表示未匹配。
+    // seen[v]：右侧顶点最近被搜索的轮次；timer：当前搜索轮次。
+    // nL、nR：左右两侧的顶点数量，各自从 1 开始编号。
     vector<int> mr, seen;
     // 初始化左部 l 个点、右部 r 个点的二分图，两侧各从 1 编号；mr 初值为 -1。
     BipartiteMatch(int l, int r) : nL(l), nR(r), g(l + 1), mr(r + 1, -1), seen(r + 1) {}
@@ -1594,11 +1655,14 @@ const i64 INF = (1LL << 62);
 
 struct Dinic {
     struct E {
+        // E（edge）：残量边；v：终点；rev：反向边在 g[v] 中的下标。
         int v, rev;
+        // cap（capacity）：当前剩余容量，增广时会改变。
         i64 cap;
     };
     int n;
     vector<vector<E>> g;
+    // level[u]：层次图中的层数，-1 表示不可达；it[u]：当前弧的邻接表下标。
     vector<int> level, it;
     // 创建 n 个顶点的空残量网络及层次、当前弧数组，顶点编号为 1..n。
     Dinic(int n) : n(n), g(n + 1), level(n + 1), it(n + 1) {}
@@ -1611,6 +1675,7 @@ struct Dinic {
         g[v].push_back({u, a, 0});
     }
     // 内部建层：沿正残量边从 s 广搜，更新 level，返回汇点 t 是否可达；时间 O(n+m)。
+    // BFS（Breadth-First Search）：广度优先搜索，用于构造层次图。
     bool bfs(int s, int t) {
         fill(level.begin(), level.end(), -1);
         queue<int> q;
@@ -1630,6 +1695,7 @@ struct Dinic {
     }
     // 在层次图中从 u 向汇点 t 尝试推送至多 f 流量，返回实际流量并更新正反残量。
     // 使用当前弧 it 跳过已尝试边；要求先 bfs 建层并初始化 it。
+    // DFS（Depth-First Search）：深度优先搜索，用于沿层次图增广。
     i64 dfs(int u, int t, i64 f) {
         if (u == t) return f;
         for (int& i = it[u]; i < (int)g[u].size(); ++i) {
@@ -1672,7 +1738,9 @@ add('图论与树',
     r'''
 struct MinCostFlow {
     struct E {
+        // E（edge）：残量边；v：终点；rev：反向边在 g[v] 中的下标。
         int v, rev;
+        // cap（capacity）：剩余容量；cost：单位流量费用，反向边费用取反。
         i64 cap, cost;
     };
     int n;
@@ -1696,6 +1764,8 @@ struct MinCostFlow {
         i128 cost = 0, INF = i128(1) << 120;
         while (f < limit) {
             vector<i128> dist(n + 1, INF);
+            // pv[v]：增广路径上 v 的前驱顶点，-1 表示尚未记录。
+            // pe[v]：前驱边在 g[pv[v]] 中的下标，仅在 pv[v] 有效时使用。
             vector<int> pv(n + 1, -1), pe(n + 1, -1);
             dist[s] = 0;
             for (int z = 0; z < n - 1; ++z) {
@@ -1722,6 +1792,7 @@ struct MinCostFlow {
             }
             for (int v = t; v != s; v = pv[v]) {
                 E& e = g[pv[v]][pe[v]];
+                // 正向剩余容量减少，反向剩余容量增加，使后续增广可以撤回已有流量。
                 e.cap -= add;
                 g[v][e.rev].cap += add;
             }
@@ -1836,7 +1907,9 @@ add('字符串',
     r'''
 // 返回前缀函数 pi，pi[i] 是 s[0..i] 的最长真前缀与后缀的公共长度。
 // 字符串和返回数组均为 0 下标，空串返回空数组；时间和空间 O(|s|)。
+// KMP（Knuth–Morris–Pratt）：字符串匹配算法，以三位提出者的姓氏命名。
 vector<int> prefix_function(const string& s) {
+    // pi[i]：s[0..i] 的最长相等真前缀与真后缀的长度，不包含整个串自身。
     vector<int> pi(s.size());
     for (int i = 1; i < (int)s.size(); ++i) {
         int j = pi[i - 1];
@@ -1885,6 +1958,7 @@ add('字符串',
 // 约定非空串 z[0]=|s|，空串返回空数组；时间和空间 O(|s|)。
 vector<int> z_function(const string& s) {
     int n = s.size();
+    // z[i]：s 与从 i 开始的后缀的最长公共前缀长度，本实现规定 z[0]=n。
     vector<int> z(n);
     if (n) z[0] = n;
     for (int i = 1, l = 0, r = 0; i < n; ++i) {
@@ -1916,6 +1990,8 @@ add('字符串',
 // 空串返回两个空数组；时间和空间 O(|s|)。
 pair<vector<int>, vector<int>> manacher(const string& s) {
     int n = s.size();
+    // d1[i]：以 i 为中心的奇回文半径，包含中心。
+    // d2[i]：以 i-1 与 i 之间为中心的偶回文半径，不含虚拟中心。
     vector<int> d1(n), d2(n);
     for (int i = 0, l = 0, r = -1; i < n; ++i) {
         int k = i > r ? 1 : min(d1[l + r - i], r - i + 1);
@@ -1953,14 +2029,16 @@ add('字符串',
     r'''
 struct StringHash {
     static constexpr i64 M1 = 1000000007, M2 = 1000000009, B = 911382323;
-    vector<i64> pre_hash1, pre_hash2, p1, p2;
+    // pre1[i]、pre2[i]：前 i 个字符在两组模数下的哈希，初值均为 0。
+    // p1[i]、p2[i]：对应模数下底数的 i 次幂。
+    vector<i64> pre1, pre2, p1, p2;
     // 预处理字符串 s 的双模前缀哈希和幂表，字符串位置为 0 下标；时间和空间 O(|s|)。
     StringHash(const string& s)
-        : pre_hash1(s.size() + 1), pre_hash2(s.size() + 1), p1(s.size() + 1, 1), p2(s.size() + 1, 1) {
+        : pre1(s.size() + 1), pre2(s.size() + 1), p1(s.size() + 1, 1), p2(s.size() + 1, 1) {
         for (int i = 0; i < (int)s.size(); ++i) {
             int x = (unsigned char)s[i] + 1;
-            pre_hash1[i + 1] = (pre_hash1[i] * B + x) % M1;
-            pre_hash2[i + 1] = (pre_hash2[i] * B + x) % M2;
+            pre1[i + 1] = (pre1[i] * B + x) % M1;
+            pre2[i + 1] = (pre2[i] * B + x) % M2;
             p1[i + 1] = p1[i] * B % M1;
             p2[i + 1] = p2[i] * B % M2;
         }
@@ -1968,8 +2046,8 @@ struct StringHash {
     // 返回子串 s[l..r) 的两个模数下哈希，要求 0<=l<=r<=|s|；时间 O(1)。
     // 比较子串时需同时比较长度；即使双哈希相等，也仍存在碰撞可能。
     pair<i64, i64> get(int l, int r) const {
-        return {(pre_hash1[r] - pre_hash1[l] * p1[r - l] % M1 + M1) % M1,
-                (pre_hash2[r] - pre_hash2[l] * p2[r - l] % M2 + M2) % M2};
+        return {(pre1[r] - pre1[l] * p1[r - l] % M1 + M1) % M1,
+                (pre2[r] - pre2[l] * p2[r - l] % M2 + M2) % M2};
     }
 };
 ''',
@@ -1982,12 +2060,17 @@ add('字符串',
     '设节点数 S、文本长 N、字符集大小 26：构建 O(26S)，匹配与反向累加 O(N+S)，空间 O(26S)。',
     'build 补全转移后不能再 insert。count 返回按节点编号的出现次数，模式答案读其终止节点。不要逐字符沿 fail 链枚举全部后缀。',
     r'''
+// AC（Aho–Corasick）：多模式字符串匹配自动机，以两位提出者的姓氏命名。
+// BFS（Breadth-First Search）：广度优先搜索，用于按层构造失配链接。
 struct Aho {
     struct Node {
+        // go[c]：字符 c 对应的转移，构建前 0 表示无子节点，构建后补齐自动机转移。
         array<int, 26> go{};
+        // fail：失配链接，指向当前串最长的、仍为某个模式前缀的真后缀节点。
         int fail = 0;
     };
     vector<Node> t{{}};
+    // order：不含根的 BFS 顺序；逆序汇总时将出现次数传给 fail 指向的节点。
     vector<int> order;
     // 插入非空小写模式串 s，返回其终止节点编号；重复模式可返回同一节点。
     // 只能在 build 前调用，时间 O(|s|)。
@@ -2055,7 +2138,13 @@ add('字符串',
     '使用比较排序的倍增：O(n log² n) 时间；Kasai 求 LCP 为 O(n)；空间 O(n)。',
     '超大字符串可改计数排序倍增或 SA-IS。不同子串数 = n(n+1)/2 - sum(lcp)。任意两后缀 LCP 可对 lcp 建 RMQ。',
     r'''
+// SA（Suffix Array）：后缀数组。
+// LCP（Longest Common Prefix）：最长公共前缀。
+// RMQ（Range Minimum Query）：区间最小值查询，可用于查询任意两后缀的 LCP。
+// SA-IS（Suffix Array Induced Sorting）：后缀数组诱导排序，是说明中提到的另一种实现。
 struct SuffixArray {
+    // sa[i]：字典序排名为 i 的后缀起点；rk[pos]：起点为 pos 的后缀排名，均从 0 开始。
+    // lcp[i]：sa[i-1] 与 sa[i] 两个后缀的最长公共前缀长度，lcp[0]=0。
     vector<int> sa, rk, lcp;
     // 构造字符串 s 的后缀排序 sa、逆排名 rk 和相邻后缀公共前缀长度 lcp。
     // 均用 0 下标，lcp[0]=0，支持空串；比较排序倍增耗时 O(n log²n)，空间 O(n)。
@@ -2066,6 +2155,7 @@ struct SuffixArray {
         lcp.assign(n, 0);
         iota(sa.begin(), sa.end(), 0);
         for (int i = 0; i < n; ++i) rk[i] = (unsigned char)s[i];
+        // tmp：本轮倍增的新排名，避免计算中覆盖上一轮 rk。
         vector<int> tmp(n);
         for (int k = 1; k < n; k *= 2) {
             // 读取当前轮位置 i 的排名，超过字符串末尾时返回 -1，作为缺失后半段的最小排名。
@@ -2107,10 +2197,15 @@ add('字符串',
     '固定字符集下构建 O(n)，空间 O(26n)；本版出现次数按长度排序，O(n log n)。',
     '克隆状态自身贡献次数为 0。occurrences 使用副本累加，可以重复调用。不要把状态数误当不同子串数。',
     r'''
+// SAM（Suffix Automaton）：后缀自动机。
 struct SAM {
     struct Node {
+        // go[c]：字符 c 对应的转移状态，-1 表示没有转移。
         array<int, 26> go;
+        // link：后缀链接，根为 -1；len：该状态代表的最大子串长度。
         int link = -1, len = 0;
+        // cnt：构建时记录的末端贡献，新建普通状态为 1、克隆为 0。
+        // 实际出现次数由 occurrences 按后缀链接汇总到副本，不能直接读取此字段。
         i64 cnt = 0;
         // 创建自动机状态：所有字符转移设为 -1，其他字段使用默认初值。
         Node() {
@@ -2118,6 +2213,7 @@ struct SAM {
         }
     };
     vector<Node> t{Node()};
+    // last：当前整个字符串对应的状态；0 号为根状态。
     int last = 0;
     // 在当前字符串末尾追加一个小写字母 ch，更新自动机、后缀链接和 last。
     // 必要时克隆状态，克隆自身出现次数为 0；固定字符集下整个构建过程为线性时间。
@@ -2166,6 +2262,7 @@ struct SAM {
     // 用副本按长度降序累加，可重复调用；根状态的值不作为空串出现次数使用。
     // S 个状态耗时 O(S log S)，额外空间 O(S)。
     vector<i64> occurrences() const {
+        // ord：状态按 len 从大到小排列的顺序，让较长状态先向后缀链接贡献次数。
         vector<int> ord(t.size());
         iota(ord.begin(), ord.end(), 0);
         // 按状态最大长度降序排序，使出现次数先从较长状态传给较短的后缀链接目标。
@@ -2310,6 +2407,8 @@ add('数学',
     '乘法 i*p 用 i64 判断上界。μ 取值为 -1、0、1；常用于莫比乌斯反演。n 至少为 1。',
     r'''
 struct Sieve {
+    // primes：素数列表；lp（least prime factor）：最小质因子，lp[1]=0。
+    // phi：欧拉函数值；mu：莫比乌斯函数值，phi[1]=mu[1]=1。
     vector<int> primes, lp, phi, mu;
     // 在线性时间内筛出 1..n 的素数、最小质因子 lp、欧拉函数 phi 和莫比乌斯函数 mu。
     // 要求 n>=1；phi[1]=mu[1]=1，lp[1]=0；时间和空间 O(n)。
@@ -2356,6 +2455,7 @@ add('数学',
 // 依赖 qpow：见 {{section:qpow}}「快速幂」（{{code:qpow}}），复制本节时一并复制。
 struct Comb {
     i64 p;
+    // fac[i]：i! 模 p；ifac[i]：i! 在模 p 下的乘法逆元。
     vector<i64> fac, ifac;
     // 预处理 0..n 的阶乘和逆阶乘，用于模素数 p 的组合数查询。
     // 要求 0<=n<p 且 p 是素数（不检查素性）；时间 O(n+log p)，空间 O(n)。
@@ -2416,8 +2516,11 @@ add('数学',
     '返回状态 0 表示无解，1 表示成功，2 表示合并模数超出 i64。不能把溢出误当无解。成功时 0≤余数<模数。',
     r'''
 // 依赖 exgcd：见 {{section:modular}}「扩展欧几里得求逆元」（{{code:modular}}）。
+// CRT（Chinese Remainder Theorem）：中国剩余定理，此处支持非互质模数的扩展形式。
 struct CRTResult {
+    // status：0 无解、1 成功、2 合并模数溢出；只有成功时才使用 r、m。
     int status;
+    // r：规范化余数；m：合并后的模数，成功时解为 x ≡ r (mod m)。
     i64 r, m;
 };
 // 合并 x≡a(mod m) 与 x≡b(mod n)，要求 m,n>0，允许模数不互质。
@@ -2572,6 +2675,8 @@ const int MOD = 998244353;
 // 依赖 qpow：见 {{section:qpow}}「快速幂」（{{code:qpow}}），复制本节时一并复制。
 // 对系数数组 a 原地做 NTT；inv=false 为正变换，true 为逆变换并乘长度逆元。
 // 要求长度是 1..2^23 内的二次幂，系数在 [0,998244353)；时间 O(n log n)。
+// NTT（Number Theoretic Transform）：数论变换，在有限域中进行离散变换。
+// inv（inverse）：是否执行逆变换，true 表示逆变换。
 void ntt(vector<int>& a, bool inv) {
     int n = a.size();
     assert(n > 0 && (n & (n - 1)) == 0 && n <= (1 << 23));
@@ -2643,6 +2748,7 @@ pair<int, vector<long double>> gauss(vector<vector<long double>> a, long double 
     int n = (int)a.size() - 1;
     assert(n > 0);
     int m = (int)a[1].size() - 2, row = 1;
+    // where[j]：第 j 个未知数的主元所在行，0 表示没有主元，即自由变量。
     vector<int> where(m + 1, 0);
     for (int col = 1; col <= m && row <= n; ++col) {
         int sel = row;
@@ -2757,6 +2863,7 @@ i64 linear_nth(const vector<i64>& init, const vector<i64>& c, u64 n, i64 mod) {
         t.resize(k);
         return t;
     };
+    // r：快速幂累积的余式系数；x：当前二进制幂对应的余式，数组下标表示次数。
     vector<i64> r(k), x(k);
     r[0] = 1 % mod;
     if (k == 1) {
@@ -2789,6 +2896,8 @@ add('数学',
 using cd = complex<double>;
 // 对复数数组 a 原地做 FFT；inv=false 为正变换，true 为逆变换并除以长度。
 // 要求长度为正二次幂；浮点计算存在误差，时间 O(n log n)。
+// FFT（Fast Fourier Transform）：快速傅里叶变换。
+// cd（complex double）：复数类型别名；inv（inverse）：是否执行逆变换。
 void fft(vector<cd>& a, bool inv) {
     int n = a.size();
     assert(n > 0 && (n & (n - 1)) == 0);
@@ -2894,8 +3003,11 @@ add('数学',
     r'''
 // 计算减法游戏状态 0..N 的 SG 值；moves 是每步可取走数量的无占位列表。
 // 要求 N>=0、每个动作 d>0；返回 sg[0]=0 的数组，时间 O(N*(|moves|+1))。
+// SG（Sprague–Grundy）：斯普拉格–格兰迪函数。
+// mex（minimum excluded value）：集合中未出现的最小非负整数。
 vector<int> subtraction_sg(int N, const vector<int>& moves) {
     int K = moves.size();
+    // sg[x]：剩余 x 时的 SG 值；seen[v]：SG 值 v 最近在哪个状态的后继中出现。
     vector<int> sg(N + 1), seen(K + 1, -1);
     for (int x = 1; x <= N; ++x) {
         for (int d : moves) {
@@ -3135,6 +3247,7 @@ add('动态规划与优化',
     r'''
 // 将一件重量 w、价值 v 的物品加入 0/1 背包，原地更新 dp[0..W]，容量倒序。
 // 要求 w>0；默认 dp 为容量不超过上限的最优值且允许不选，加法不得溢出；时间 O(W)。
+// DP（Dynamic Programming）：动态规划；dp[j] 表示容量不超过 j 时可获得的最大价值。
 void zero_one(vector<i64>& dp, int w, i64 v) {
     assert(w > 0);
     for (int c = (int)dp.size() - 1; c >= w; --c) {
@@ -3154,6 +3267,7 @@ add('动态规划与优化',
     r'''
 // 将可无限使用的重量 w、价值 v 的物品加入完全背包，原地更新 dp，容量正序。
 // 要求 w>0，dp 使用容量 0..W；当前初始化约定为不要求恰好装满，时间 O(W)。
+// DP（Dynamic Programming）：动态规划；dp[j] 表示容量不超过 j 时可获得的最大价值。
 void complete(vector<i64>& dp, int w, i64 v) {
     assert(w > 0);
     for (int c = w; c < (int)dp.size(); ++c) {
@@ -3173,6 +3287,7 @@ add('动态规划与优化',
     r'''
 // 将最多 count 件重量 w、价值 v 的物品加入多重背包，二进制拆分后更新 dp。
 // 要求 w>0、count>=0，价值乘积及转移和不溢出；时间 O(W*log(count+1))。
+// DP（Dynamic Programming）：动态规划；dp[j] 表示容量不超过 j 时可获得的最大价值。
 void bounded(vector<i64>& dp, int w, i64 v, int count) {
     assert(w > 0 && count >= 0);
     for (i64 k = 1; count > 0; k *= 2) {
@@ -3197,8 +3312,11 @@ add('动态规划与优化',
     r'''
 // 返回 a[1..n] 的一条最长严格上升子序列对应的原数组下标列表，忽略 a[0]。
 // 结果列表不带占位，不保证字典序最小；时间 O(n log n)，空间 O(n)。
+// LIS（Longest Increasing Subsequence）：最长严格上升子序列。
 vector<int> lis_indices(const vector<i64>& a) {
+    // tail[k]：长度为 k+1 的严格上升子序列可取得的最小末尾值。
     vector<i64> tail;
+    // at[k]：tail[k] 对应的原数组下标；prev[i]：恢复方案时 i 的前驱下标，-1 表示无前驱。
     vector<int> at, prev(a.size(), -1);
     for (int i = 1; i < (int)a.size(); ++i) {
         int k = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
@@ -3230,7 +3348,10 @@ add('动态规划与优化',
     r'''
 // 返回字符串 a、b 的最长公共子序列长度，允许不连续；空串对应答案 0。
 // 滚动数组不保存恢复方案所需的信息；时间 O(|a|*|b|)，空间 O(|b|)。
+// LCS（Longest Common Subsequence）：最长公共子序列。
+// DP（Dynamic Programming）：动态规划。
 int lcs(const string& a, const string& b) {
+    // dp[j]：当前已处理的 a 前缀与 b 的前 j 个字符的 LCS 长度，原地滚动更新。
     vector<int> dp(b.size() + 1);
     for (char x : a) {
         int diag = 0;
@@ -3259,9 +3380,12 @@ add('动态规划与优化',
     r'''
 // 统计闭区间 [0,N] 中十进制相邻数字不同的整数个数，计入 0；N<0 返回 0。
 // 前导零不参与比较；可用 count(R)-count(L-1) 求区间答案，时间与十进制位数成正比。
+// DP（Dynamic Programming）：动态规划；此处按数位及上一位数字划分状态。
+// DFS（Depth-First Search）：深度优先搜索，此处配合记忆化实现数位 DP。
 u64 count_no_equal_adjacent(i64 N) {
     if (N < 0) return 0;
     string s = to_string(N);
+    // memo[pos][prev]：不受上界约束时的补全数量；prev=10 表示尚未出现非前导零数字。
     u64 memo[20][11]{};
     bool vis[20][11]{};
     // 内部数位搜索：pos 为当前 0 下标位，prev 为上一位数字，10 表示尚未开始。
@@ -3296,6 +3420,8 @@ add('动态规划与优化',
     r'''
 // 返回每个掩码 S 的子集和 Σ(T⊆S) f[T]；按值处理，不修改调用者的数组。
 // 要求 0<=n<31、f.size()==2^n 且内存足够，累加不溢出；时间 O(n*2^n)。
+// SOS DP（Sum Over Subsets Dynamic Programming）：子集和动态规划。
+// f[mask] 初始为单个集合的值，逐位转移后为 mask 的所有子集的值之和。
 vector<i64> subset_sum(vector<i64> f, int n) {
     assert(0 <= n && n < 31 && f.size() == (1ULL << n));
     for (int b = 0; b < n; ++b) {
@@ -3309,6 +3435,7 @@ vector<i64> subset_sum(vector<i64> f, int n) {
 }
 // 返回每个掩码 S 的超集和 Σ(T⊇S) f[T]，掩码 0 表示空集。
 // 要求 0<=n<31、f.size()==2^n 且内存足够，累加不溢出；时间 O(n*2^n)。
+// f[mask] 初始为单个集合的值，逐位转移后为 mask 的所有超集的值之和。
 vector<i64> superset_sum(vector<i64> f, int n) {
     assert(0 <= n && n < 31 && f.size() == (1ULL << n));
     for (int b = 0; b < n; ++b) {
@@ -3332,6 +3459,7 @@ add('动态规划与优化',
     r'''
 // 返回连通无向树的最大权独立集权值和，允许不选任何点；全负权时返回 0。
 // g 和 w 均使用 1..n，0 号占位，要求权值和不溢出；迭代遍历耗时、空间均为 O(n)。
+// DP（Dynamic Programming）：动态规划；此处在树上按子树合并状态。
 i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
     int n = (int)g.size() - 1;
     if (!n) return 0;
@@ -3345,6 +3473,7 @@ i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
             }
         }
     }
+    // dp[u][0]：不选 u 的子树最大权值；dp[u][1]：选 u 的子树最大权值。
     vector<array<i64, 2>> dp(n + 1);
     for (int i = n - 1; i >= 0; --i) {
         int u = ord[i];
@@ -3368,6 +3497,7 @@ add('动态规划与优化',
     '坐标数 M：每次插入与查询 O(log M)，空间 O(M)。',
     '查询 x 必须在构造坐标中。直线值用 i128，要求实际值绝对值<2^126。无直线时返回 INF。本版本插入整条直线，不是线段。',
     r'''
+// DP（Dynamic Programming）：动态规划；李超树可维护直线形式的转移最小值。
 struct LiChao {
     struct Line {
         i64 k = 0, b = 0;
@@ -3375,7 +3505,9 @@ struct LiChao {
         i128 eval(i64 x) const { return i128(k) * x + b; }
     };
     const i128 INF = i128(1) << 126;
+    // xs：排序去重后的所有查询横坐标，下标从 0 开始。
     vector<i64> xs;
+    // t[p]：线段树节点保存的候选直线；has[p] 表示该节点是否已有直线。
     vector<Line> t;
     vector<char> has;
     // 收集全部将被查询的横坐标 x[1..m]，忽略 x[0]，排序去重后建立空李超树。
@@ -3454,8 +3586,10 @@ const i64 INF = (1LL << 62);
 // prev 的下标是前缀长度，cost(j,i) 对应原数组 [j+1,i]；要求最优决策位置单调不减。
 // 不可达 prev 用 INF，有限转移结果须在 (-INF,INF)；cost 为 O(1) 时耗时 O(n log n)。
 template <class Cost>
+// DP（Dynamic Programming）：动态规划；利用最优决策下标的单调性分治计算一层。
 vector<i64> divide_dp_layer(const vector<i64>& prev, Cost cost) {
     int n = prev.size() - 1;
+    // prev：上一层 DP 值；cur：正在计算的当前层 DP 值，INF 表示尚无有效转移。
     vector<i64> cur(n + 1, INF);
     // 内部决策分治：求 cur[l..r]，最优决策只在 [optL,optR] 中搜索。
     // 先计算中点最优决策，再收窄左右搜索范围；只有决策单调性成立时才正确。
@@ -3566,6 +3700,7 @@ add('计算几何',
 // 判断点 q 与简单多边形 p 的位置关系：0 为外部、1 为边界、2 为内部。
 // p 是按边界顺序排列的无占位循环列表，顺逆时针均可；时间 O(n)。
 int inside(const vector<Point>& p, Point q) {
+    // wn（winding number）：绕数；点不在边界时，非零表示在多边形内部。
     int wn = 0, n = p.size();
     for (int i = 0; i < n; ++i) {
         Point a = p[i], b = p[(i + 1) % n];
@@ -3679,7 +3814,9 @@ vector<P> clip_halfplane(const vector<P>& poly, P a, P b) {
     assert(dot(v, v) > 0);
     for (int i = 0; i < n; ++i) {
         P p = poly[i], q = poly[(i + 1) % n];
+        // dp、dq：点 p、q 相对裁剪直线的有向叉积值，此处 dp 不是动态规划。
         ld dp = cross(v, p - a), dq = cross(v, q - a);
+        // ip、iq：对应端点是否位于保留半平面内，包含容差范围内的边界。
         bool ip = dp >= -EPS, iq = dq >= -EPS;
         if (ip) out.push_back(p);
         if (ip != iq) {
@@ -3718,7 +3855,9 @@ bool on_segment(Point p, Point a, Point b) {
 }
 ''',
 'geo_float': r'''
+// ld（long double）：扩展精度浮点类型；P（point）：二维点，也用于表示向量。
 using ld = long double;
+// EPS（epsilon）：浮点比较容差，需结合题目坐标尺度选择。
 const ld EPS = 1e-12L;
 struct P {
     ld x, y;

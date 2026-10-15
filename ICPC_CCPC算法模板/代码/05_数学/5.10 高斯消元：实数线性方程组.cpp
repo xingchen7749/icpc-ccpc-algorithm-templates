@@ -12,6 +12,7 @@ pair<int, vector<long double>> gauss(vector<vector<long double>> a, long double 
     int n = (int)a.size() - 1;
     assert(n > 0);
     int m = (int)a[1].size() - 2, row = 1;
+    // where[j]：第 j 个未知数的主元所在行，0 表示没有主元，即自由变量。
     vector<int> where(m + 1, 0);
     for (int col = 1; col <= m && row <= n; ++col) {
         int sel = row;

@@ -5,13 +5,19 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// FHQ Treap：基于 split/merge 的无旋 Treap；FHQ 来自作者名 fhq。
+// Treap 由 Tree（树）和 Heap（堆）合成；隐式版本用中序位置表示序列下标。
 struct ImplicitTreap {
     struct Node {
+        // l、r：左右儿子编号，0 表示空树；sz：以当前节点为根的子树大小。
         int l = 0, r = 0, sz = 1;
+        // pri（priority）：随机优先级，维护堆性质。
         u64 pri = 0;
         i64 val = 0;
+        // rev（reverse）：待下传的区间翻转标记，不是反向下标。
         bool rev = false;
     };
+    // t：节点池，0 号为空节点；有效节点从 1 开始。
     vector<Node> t{{}};
     int root = 0;
     mt19937_64 rng{712367};

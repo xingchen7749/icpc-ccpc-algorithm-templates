@@ -7,7 +7,9 @@ using u64 = unsigned long long;
 
 struct MinCostFlow {
     struct E {
+        // E（edge）：残量边；v：终点；rev：反向边在 g[v] 中的下标。
         int v, rev;
+        // cap（capacity）：剩余容量；cost：单位流量费用，反向边费用取反。
         i64 cap, cost;
     };
     int n;
@@ -31,6 +33,8 @@ struct MinCostFlow {
         i128 cost = 0, INF = i128(1) << 120;
         while (f < limit) {
             vector<i128> dist(n + 1, INF);
+            // pv[v]：增广路径上 v 的前驱顶点，-1 表示尚未记录。
+            // pe[v]：前驱边在 g[pv[v]] 中的下标，仅在 pv[v] 有效时使用。
             vector<int> pv(n + 1, -1), pe(n + 1, -1);
             dist[s] = 0;
             for (int z = 0; z < n - 1; ++z) {
@@ -57,6 +61,7 @@ struct MinCostFlow {
             }
             for (int v = t; v != s; v = pv[v]) {
                 E& e = g[pv[v]][pe[v]];
+                // 正向剩余容量减少，反向剩余容量增加，使后续增广可以撤回已有流量。
                 e.cap -= add;
                 g[v][e.rev].cap += add;
             }

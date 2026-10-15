@@ -25,6 +25,7 @@ i64 qpow(i64 a, u64 b, i64 mod) {
 // 依赖 qpow：见 5.1「快速幂」（代码/05_数学/5.1 快速幂.cpp），复制本节时一并复制。
 struct Comb {
     i64 p;
+    // fac[i]：i! 模 p；ifac[i]：i! 在模 p 下的乘法逆元。
     vector<i64> fac, ifac;
     // 预处理 0..n 的阶乘和逆阶乘，用于模素数 p 的组合数查询。
     // 要求 0<=n<p 且 p 是素数（不检查素性）；时间 O(n+log p)，空间 O(n)。

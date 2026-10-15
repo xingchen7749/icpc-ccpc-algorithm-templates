@@ -7,9 +7,12 @@ using u64 = unsigned long long;
 
 // 统计闭区间 [0,N] 中十进制相邻数字不同的整数个数，计入 0；N<0 返回 0。
 // 前导零不参与比较；可用 count(R)-count(L-1) 求区间答案，时间与十进制位数成正比。
+// DP（Dynamic Programming）：动态规划；此处按数位及上一位数字划分状态。
+// DFS（Depth-First Search）：深度优先搜索，此处配合记忆化实现数位 DP。
 u64 count_no_equal_adjacent(i64 N) {
     if (N < 0) return 0;
     string s = to_string(N);
+    // memo[pos][prev]：不受上界约束时的补全数量；prev=10 表示尚未出现非前导零数字。
     u64 memo[20][11]{};
     bool vis[20][11]{};
     // 内部数位搜索：pos 为当前 0 下标位，prev 为上一位数字，10 表示尚未开始。

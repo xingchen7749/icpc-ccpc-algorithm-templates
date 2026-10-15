@@ -9,6 +9,7 @@ using u64 = unsigned long long;
 // a 使用 1 下标且值在 1..m；非空查询满足 1<=l<=r<=n，不支持修改。
 vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>>& ranges) {
     int n = (int)a.size() - 1, q = ranges.size(), B = max(1, (int)sqrt(n));
+    // ord：查询的处理顺序；ans：按原查询编号保存答案；cnt[x]：当前区间中值 x 的频数。
     vector<int> ord(q), ans(q), cnt(m + 1);
     iota(ord.begin(), ord.end(), 0);
     // 按左端点分块，块内右端点交替升降序排序，减少窗口指针移动；x、y 是查询编号。
@@ -18,6 +19,7 @@ vector<int> mo_distinct(const vector<int>& a, int m, const vector<pair<int, int>
         if (l / B != L / B) return l / B < L / B;
         return (l / B & 1) ? r > R : r < R;
     });
+    // 当前窗口为 [l,r]，初始为空；cur：窗口内不同数值的数量。
     int l = 1, r = 0, cur = 0;
     // 把位置 i 纳入当前窗口，更新其频数；该值首次出现时增加不同值计数 cur。
     auto add = [&](int i) {

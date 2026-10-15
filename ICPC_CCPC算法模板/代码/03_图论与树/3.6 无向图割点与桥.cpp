@@ -8,7 +8,11 @@ using u64 = unsigned long long;
 struct LowLink {
     int n, timer = 0;
     vector<vector<pair<int, int>>> g;
+    // DFS（Depth-First Search）：深度优先搜索。
+    // dfn[u]：首次访问时间戳；low[u]：从子树经树边及至多一条返祖边可达的最小时间戳。
+    // bridges：桥的边编号列表；timer：访问时间戳计数器。
     vector<int> dfn, low, bridges;
+    // cut[u]：顶点 u 是否为割点。
     vector<char> cut;
     // 创建 n 个顶点的无向图，初始化访问时间、low 值和割点标记；点编号为 1..n。
     LowLink(int n) : n(n), g(n + 1), dfn(n + 1), low(n + 1), cut(n + 1) {}

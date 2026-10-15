@@ -5,9 +5,12 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// ST（Sparse Table）：稀疏表，用于静态区间查询。
+// RMQ（Range Minimum Query）：区间最小值查询，本模板默认实现的操作。
 class ST {
 private:
     int n;
+    // st[i][j]：从 i 开始、长度为 2^j 的区间最小值。
     vector<vector<int>> st;
 
 public:

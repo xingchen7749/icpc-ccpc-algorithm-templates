@@ -8,6 +8,8 @@ using u64 = unsigned long long;
 using cd = complex<double>;
 // 对复数数组 a 原地做 FFT；inv=false 为正变换，true 为逆变换并除以长度。
 // 要求长度为正二次幂；浮点计算存在误差，时间 O(n log n)。
+// FFT（Fast Fourier Transform）：快速傅里叶变换。
+// cd（complex double）：复数类型别名；inv（inverse）：是否执行逆变换。
 void fft(vector<cd>& a, bool inv) {
     int n = a.size();
     assert(n > 0 && (n & (n - 1)) == 0);

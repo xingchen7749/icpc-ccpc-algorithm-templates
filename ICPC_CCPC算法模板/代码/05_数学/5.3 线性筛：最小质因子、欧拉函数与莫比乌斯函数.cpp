@@ -6,6 +6,8 @@ using u64 = unsigned long long;
 // #define int long long
 
 struct Sieve {
+    // primes：素数列表；lp（least prime factor）：最小质因子，lp[1]=0。
+    // phi：欧拉函数值；mu：莫比乌斯函数值，phi[1]=mu[1]=1。
     vector<int> primes, lp, phi, mu;
     // 在线性时间内筛出 1..n 的素数、最小质因子 lp、欧拉函数 phi 和莫比乌斯函数 mu。
     // 要求 n>=1；phi[1]=mu[1]=1，lp[1]=0；时间和空间 O(n)。

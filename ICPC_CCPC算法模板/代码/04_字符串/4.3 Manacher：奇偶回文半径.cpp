@@ -10,6 +10,8 @@ using u64 = unsigned long long;
 // 空串返回两个空数组；时间和空间 O(|s|)。
 pair<vector<int>, vector<int>> manacher(const string& s) {
     int n = s.size();
+    // d1[i]：以 i 为中心的奇回文半径，包含中心。
+    // d2[i]：以 i-1 与 i 之间为中心的偶回文半径，不含虚拟中心。
     vector<int> d1(n), d2(n);
     for (int i = 0, l = 0, r = -1; i < n; ++i) {
         int k = i > r ? 1 : min(d1[l + r - i], r - i + 1);

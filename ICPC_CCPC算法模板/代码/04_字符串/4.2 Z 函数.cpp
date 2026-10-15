@@ -9,6 +9,7 @@ using u64 = unsigned long long;
 // 约定非空串 z[0]=|s|，空串返回空数组；时间和空间 O(|s|)。
 vector<int> z_function(const string& s) {
     int n = s.size();
+    // z[i]：s 与从 i 开始的后缀的最长公共前缀长度，本实现规定 z[0]=n。
     vector<int> z(n);
     if (n) z[0] = n;
     for (int i = 1, l = 0, r = 0; i < n; ++i) {

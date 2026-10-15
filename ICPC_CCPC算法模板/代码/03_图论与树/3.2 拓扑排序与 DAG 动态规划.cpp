@@ -7,8 +7,11 @@ using u64 = unsigned long long;
 
 // 对 g[1..n] 做拓扑排序，返回无占位的顶点顺序列表；不修改图。
 // 返回长度不足 n 表示存在有向环，此时列表并非全图拓扑序；时间 O(n+m)。
+// DAG（Directed Acyclic Graph）：有向无环图。
+// DP（Dynamic Programming）：动态规划，可按 DAG 的拓扑序转移。
 vector<int> topo_sort(const vector<vector<int>>& g) {
     int n = (int)g.size() - 1;
+    // deg[u]：尚未删除的入边数量；ans：依次取出的拓扑序顶点。
     vector<int> deg(n + 1), ans;
     queue<int> q;
     for (auto& es : g) {

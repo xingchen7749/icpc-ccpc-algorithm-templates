@@ -7,9 +7,11 @@ using u64 = unsigned long long;
 
 // 求源点 s 的 0/1 边权最短路；g 使用 1 下标，边记录为 {终点,0或1}。
 // 返回各点距离，不可达为 1LL<<62；不修改图，时间 O(n+m)。
+// BFS（Breadth-First Search）：广度优先搜索；0-1 BFS 用双端队列处理 0/1 边权。
 vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
     const i64 INF = (1LL << 62);
     vector<i64> dist(g.size(), INF);
+    // done[u]：顶点 u 是否已经确定最短距离并展开，防止重复处理。
     vector<char> done(g.size());
     deque<int> q;
     dist[s] = 0;

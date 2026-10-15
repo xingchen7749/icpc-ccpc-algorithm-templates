@@ -6,7 +6,9 @@ using u64 = unsigned long long;
 // #define int long long
 
 
+// ld（long double）：扩展精度浮点类型；P（point）：二维点，也用于表示向量。
 using ld = long double;
+// EPS（epsilon）：浮点比较容差，需结合题目坐标尺度选择。
 const ld EPS = 1e-12L;
 struct P {
     ld x, y;

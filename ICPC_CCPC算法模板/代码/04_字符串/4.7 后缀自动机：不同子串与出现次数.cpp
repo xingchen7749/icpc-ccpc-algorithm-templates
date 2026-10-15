@@ -5,10 +5,15 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// SAM（Suffix Automaton）：后缀自动机。
 struct SAM {
     struct Node {
+        // go[c]：字符 c 对应的转移状态，-1 表示没有转移。
         array<int, 26> go;
+        // link：后缀链接，根为 -1；len：该状态代表的最大子串长度。
         int link = -1, len = 0;
+        // cnt：构建时记录的末端贡献，新建普通状态为 1、克隆为 0。
+        // 实际出现次数由 occurrences 按后缀链接汇总到副本，不能直接读取此字段。
         i64 cnt = 0;
         // 创建自动机状态：所有字符转移设为 -1，其他字段使用默认初值。
         Node() {
@@ -16,6 +21,7 @@ struct SAM {
         }
     };
     vector<Node> t{Node()};
+    // last：当前整个字符串对应的状态；0 号为根状态。
     int last = 0;
     // 在当前字符串末尾追加一个小写字母 ch，更新自动机、后缀链接和 last。
     // 必要时克隆状态，克隆自身出现次数为 0；固定字符集下整个构建过程为线性时间。
@@ -64,6 +70,7 @@ struct SAM {
     // 用副本按长度降序累加，可重复调用；根状态的值不作为空串出现次数使用。
     // S 个状态耗时 O(S log S)，额外空间 O(S)。
     vector<i64> occurrences() const {
+        // ord：状态按 len 从大到小排列的顺序，让较长状态先向后缀链接贡献次数。
         vector<int> ord(t.size());
         iota(ord.begin(), ord.end(), 0);
         // 按状态最大长度降序排序，使出现次数先从较长状态传给较短的后缀链接目标。

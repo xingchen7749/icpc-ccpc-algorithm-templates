@@ -7,10 +7,13 @@ using u64 = unsigned long long;
 
 struct PersistentKth {
     struct Node {
+        // l、r：左右儿子的节点编号，0 表示空节点；cnt：该值域内的元素数量。
         int l = 0, r = 0, cnt = 0;
     };
     int m;
+    // t：可持久化节点池，0 号为空节点。
     vector<Node> t{{}};
+    // root[i]：插入前 i 个元素后的版本根；root[0] 表示空前缀。
     vector<int> root{0};
     // 设置离散值域为 1..m，创建空前缀版本 root[0]，要求 m>0。
     PersistentKth(int m) : m(m) {

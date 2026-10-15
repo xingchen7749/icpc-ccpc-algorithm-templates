@@ -7,6 +7,8 @@ using u64 = unsigned long long;
 
 struct Fenwick {
     int n;
+    // t[i]：树状数组节点，维护原数组区间 [i-lowbit(i)+1,i] 的和。
+    // lowbit(i) = i & -i，表示 i 的最低有效二进制位对应的值。
     vector<i64> t;
     // 初始化长度为 n、下标为 1..n 的全零树状数组，时间和空间 O(n)。
     Fenwick(int n) : n(n), t(n + 1) {}

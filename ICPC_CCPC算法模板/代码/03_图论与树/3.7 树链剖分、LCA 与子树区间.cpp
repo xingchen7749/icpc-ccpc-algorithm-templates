@@ -5,15 +5,22 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// HLD（Heavy-Light Decomposition）：树链剖分。
+// DFS（Depth-First Search）：深度优先搜索；DFS 序使子树对应连续区间。
 struct HLD {
     int n;
     vector<vector<int>> g;
+    // father[u]：父节点，根的父节点是自身；dep（depth）：深度，根为 0。
+    // sz（size）：子树大小，包含自身；heavy[u]：重儿子，-1 表示没有。
+    // head[u]：所在重链的链头；pos[u]：从 1 开始的 DFS 序编号。
+    // rev[i]：DFS 序编号为 i 的顶点，rev[pos[u]] = u。
     vector<int> father, dep, sz, heavy, head, pos, rev;
     // 以 root 为根对非空连通无向树 g[1..n] 做迭代树链剖分，构造父亲、深度和 dfs 序。
     // pos/rev 使用 1 下标，子树区间为 [pos[u],pos[u]+sz[u]-1]；时间和空间 O(n)。
     HLD(vector<vector<int>> g, int root = 1)
         : n((int)g.size() - 1), g(move(g)), father(n + 1, -1), dep(n + 1), sz(n + 1, 1),
           heavy(n + 1, -1), head(n + 1), pos(n + 1), rev(n + 1) {
+        // ord（order）：父节点先于子节点的遍历顺序，逆序处理即可汇总子树大小。
         vector<int> ord{root};
         father[root] = root;
         for (int i = 0; i < n; ++i) {
@@ -51,6 +58,7 @@ struct HLD {
         }
     }
     // 返回树上顶点 u、v 的最近公共祖先，要求顶点有效且已完成构造；时间 O(log n)。
+    // LCA（Lowest Common Ancestor）：最近公共祖先。
     int lca(int u, int v) {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);

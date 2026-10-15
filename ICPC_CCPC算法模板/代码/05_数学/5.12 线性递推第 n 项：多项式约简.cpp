@@ -28,6 +28,7 @@ i64 linear_nth(const vector<i64>& init, const vector<i64>& c, u64 n, i64 mod) {
         t.resize(k);
         return t;
     };
+    // r：快速幂累积的余式系数；x：当前二进制幂对应的余式，数组下标表示次数。
     vector<i64> r(k), x(k);
     r[0] = 1 % mod;
     if (k == 1) {
