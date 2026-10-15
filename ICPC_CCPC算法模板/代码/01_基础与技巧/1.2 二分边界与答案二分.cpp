@@ -13,7 +13,8 @@ i64 first_true(i64 lo, i64 hi, Pred ok) {
         i64 mid = lo + (hi - lo) / 2;
         if (ok(mid)) {
             hi = mid;
-        } else {
+        }
+        else {
             lo = mid + 1;
         }
     }

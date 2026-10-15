@@ -33,7 +33,8 @@ struct SCC {
                     if (i == (int)g[u].size()) {
                         order.push_back(u);
                         st.pop_back();
-                    } else {
+                    }
+                    else {
                         int v = g[u][i++];
                         if (!vis[v]) {
                             vis[v] = 1;

@@ -176,7 +176,8 @@ pair<big_int, big_int> divmod(const big_int& a, const big_int& b) {
         // remainder = remainder*base + a.arr[i]。
         if (remainder.is_zero()) {
             remainder.arr[0] = a.arr[i];
-        } else {
+        }
+        else {
             remainder.arr.insert(remainder.arr.begin(), a.arr[i]);
         }
         int l = 0, r = big_int::base;
@@ -185,7 +186,8 @@ pair<big_int, big_int> divmod(const big_int& a, const big_int& b) {
             big_int product = chen(b, m);
             if (compare(product, remainder) <= 0) {
                 l = m;
-            } else {
+            }
+            else {
                 r = m;
             }
         }

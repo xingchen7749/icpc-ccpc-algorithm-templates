@@ -9,10 +9,10 @@ using u64 = unsigned long long;
 // 返回各点距离，不可达为 1LL<<62；不修改图，时间 O(n+m)。
 vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
     const i64 INF = (1LL << 62);
-    vector<i64> d(g.size(), INF);
+    vector<i64> dist(g.size(), INF);
     vector<char> done(g.size());
     deque<int> q;
-    d[s] = 0;
+    dist[s] = 0;
     q.push_front(s);
     while (!q.empty()) {
         int u = q.front();
@@ -21,17 +21,18 @@ vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
         done[u] = 1;
         for (auto [v, w] : g[u]) {
             assert(w == 0 || w == 1);
-            if (d[v] > d[u] + w) {
-                d[v] = d[u] + w;
+            if (dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
                 if (w) {
                     q.push_back(v);
-                } else {
+                }
+                else {
                     q.push_front(v);
                 }
             }
         }
     }
-    return d;
+    return dist;
 }
 
 void solve() {

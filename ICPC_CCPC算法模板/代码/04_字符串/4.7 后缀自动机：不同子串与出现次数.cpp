@@ -32,11 +32,13 @@ struct SAM {
         }
         if (p == -1) {
             t[cur].link = 0;
-        } else {
+        }
+        else {
             int q = t[p].go[c];
             if (t[p].len + 1 == t[q].len) {
                 t[cur].link = q;
-            } else {
+            }
+            else {
                 int clone = t.size();
                 t.push_back(t[q]);
                 t[clone].len = t[p].len + 1;

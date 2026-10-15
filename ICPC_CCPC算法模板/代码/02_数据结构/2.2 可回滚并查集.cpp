@@ -6,15 +6,15 @@ using u64 = unsigned long long;
 // #define int long long
 
 struct RollbackDSU {
-    vector<int> p, sz;
+    vector<int> father, sz;
     vector<pair<int, int>> hist;
     // 创建编号 1..n 的独立集合并清空合并历史，时间和空间 O(n)。
-    RollbackDSU(int n) : p(n + 1), sz(n + 1, 1) {
-        iota(p.begin(), p.end(), 0);
+    RollbackDSU(int n) : father(n + 1), sz(n + 1, 1) {
+        iota(father.begin(), father.end(), 0);
     }
     // 沿父指针返回 x 的代表元，不压缩路径以便回滚；时间 O(log n)。
     int find(int x) {
-        while (x != p[x]) x = p[x];
+        while (x != father[x]) x = father[x];
         return x;
     }
     // 返回当前成功合并历史的长度，作为之后 rollback 的快照；不修改状态，O(1)。
@@ -27,7 +27,7 @@ struct RollbackDSU {
         if (a == b) return false;
         if (sz[a] < sz[b]) swap(a, b);
         hist.push_back({b, sz[a]});
-        p[b] = a;
+        father[b] = a;
         sz[a] += sz[b];
         return true;
     }
@@ -37,8 +37,8 @@ struct RollbackDSU {
         while ((int)hist.size() > s) {
             auto [b, old] = hist.back();
             hist.pop_back();
-            sz[p[b]] = old;
-            p[b] = b;
+            sz[father[b]] = old;
+            father[b] = b;
         }
     }
 };

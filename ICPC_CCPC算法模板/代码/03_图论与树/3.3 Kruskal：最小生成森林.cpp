@@ -5,12 +5,13 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
-vector<int> father, rk;
+vector<int> father, rk, sz;
 
-// 初始化编号 1..n 的独立集合，初始秩为 1；时间和空间 O(n)。
+// 初始化编号 1..n 的独立集合，初始秩和集合大小均为 1；时间和空间 O(n)。
 void init(int n) {
     father.resize(n + 1);
     rk.assign(n + 1, 1);
+    sz.assign(n + 1, 1);
     for (int i = 1; i <= n; ++i) father[i] = i;
 }
 
@@ -20,20 +21,30 @@ int find(int id) {
     return father[id];
 }
 
-// 按秩合并 u、v 所在集合；成功返回 true，原本同集合返回 false。
+// 按秩合并 u、v 所在集合并更新集合大小；成功返回 true，原本同集合返回 false。
 // 要求顶点为 1..n；配合路径压缩，均摊时间 O(α(n))。
 bool merge(int u, int v) {
     int a = find(u), b = find(v);
     if (a == b) return false;
     if (rk[a] > rk[b]) {
         father[b] = a;
-    } else if (rk[b] > rk[a]) {
+        sz[a] += sz[b];
+    }
+    else if (rk[b] > rk[a]) {
         father[a] = b;
-    } else {
+        sz[b] += sz[a];
+    }
+    else {
         father[b] = a;
         rk[a]++;
+        sz[a] += sz[b];
     }
     return true;
+}
+
+// 返回 id 所在集合的元素数量；要求 1<=id<=n，均摊时间 O(α(n))。
+int size(int id) {
+    return sz[find(id)];
 }
 
 // 依赖手册 2.1「并查集」，以上已展开其实现。
@@ -72,7 +83,8 @@ void solve() {
     auto [result, used] = kruskal(n, arr);
     if (used != n - 1) {
         cout << -1 << '\n';
-    } else {
+    }
+    else {
         cout << result << '\n';
     }
 }

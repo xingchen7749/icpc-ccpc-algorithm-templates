@@ -34,7 +34,8 @@ struct LowLink {
                 if (pe != -1 && low[v] >= dfn[u]) {
                     cut[u] = 1;
                 }
-            } else {
+            }
+            else {
                 low[u] = min(low[u], dfn[v]);
             }
         }

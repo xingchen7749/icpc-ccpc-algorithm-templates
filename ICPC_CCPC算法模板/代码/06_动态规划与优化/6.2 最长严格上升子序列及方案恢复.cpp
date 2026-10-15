@@ -9,21 +9,22 @@ using u64 = unsigned long long;
 // 结果列表不带占位，不保证字典序最小；时间 O(n log n)，空间 O(n)。
 vector<int> lis_indices(const vector<i64>& a) {
     vector<i64> tail;
-    vector<int> at, pre(a.size(), -1);
+    vector<int> at, prev(a.size(), -1);
     for (int i = 1; i < (int)a.size(); ++i) {
         int k = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
-        if (k) pre[i] = at[k - 1];
+        if (k) prev[i] = at[k - 1];
         if (k == (int)tail.size()) {
             tail.push_back(a[i]);
             at.push_back(i);
-        } else {
+        }
+        else {
             tail[k] = a[i];
             at[k] = i;
         }
     }
     vector<int> ans;
     if (at.empty()) return ans;
-    for (int i = at.back(); i != -1; i = pre[i]) ans.push_back(i);
+    for (int i = at.back(); i != -1; i = prev[i]) ans.push_back(i);
     reverse(ans.begin(), ans.end());
     return ans;
 }

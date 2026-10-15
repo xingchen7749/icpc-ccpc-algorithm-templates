@@ -52,7 +52,8 @@ private:
         int m = (l + r) / 2;
         if (pos <= m) {
             set(p * 2, l, m, pos, v);
-        } else {
+        }
+        else {
             set(p * 2 + 1, m + 1, r, pos, v);
         }
         pushup(p);

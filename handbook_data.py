@@ -47,7 +47,8 @@ i64 first_true(i64 lo, i64 hi, Pred ok) {
         i64 mid = lo + (hi - lo) / 2;
         if (ok(mid)) {
             hi = mid;
-        } else {
+        }
+        else {
             lo = mid + 1;
         }
     }
@@ -86,21 +87,21 @@ int rank_of(const vector<T>& xs, T x) {
 add('基础与技巧',
     'prefix',
     '前缀和',
-    '输入数组 a[1..n]，构造 s[0]=0 的前缀和数组；闭区间 [l,r] 的和为 s[r]-s[l-1]，适合静态区间求和。',
+    '输入数组 a[1..n]，构造 pre_sum[0]=0 的前缀和数组；闭区间 [l,r] 的和为 pre_sum[r]-pre_sum[l-1]，适合静态区间求和。',
     '构造时间和空间 O(n)，单次区间求和 O(1)。',
     '输入数组至少包含占位 a[0]，其值不参与计算。要求 1≤l≤r≤n；原数组修改后前缀和不会自动更新，累加及区间和必须在 i64 范围内。',
     r'''
-// 由 a[1..n] 构造前缀和 s，s[0]=0；[l,r] 的和为 s[r]-s[l-1]。
+// 由 a[1..n] 构造前缀和 pre_sum，pre_sum[0]=0；[l,r] 的和为 pre_sum[r]-pre_sum[l-1]。
 // 忽略 a[0]，不修改 a；要求累加不溢出 i64，时间和空间均为 O(n)。
 vector<i64> prefix_sum(const vector<i64>& a) {
-    vector<i64> s(a.size());
+    vector<i64> pre_sum(a.size());
     for (int i = 1; i < (int)a.size(); ++i) {
-        s[i] = s[i - 1] + a[i];
+        pre_sum[i] = pre_sum[i - 1] + a[i];
     }
-    return s; // sum[l,r] = s[r]-s[l-1]
+    return pre_sum; // sum[l,r] = pre_sum[r]-pre_sum[l-1]
 }
 ''',
-    'auto s = prefix_sum({0,1,2,3}); 得到 {0,1,3,6}；区间 [2,3] 的和为 s[3]-s[1]=5。')
+    'auto pre_sum = prefix_sum({0,1,2,3}); 得到 {0,1,3,6}；区间 [2,3] 的和为 pre_sum[3]-pre_sum[1]=5。')
 
 add('基础与技巧',
     'difference',
@@ -197,16 +198,17 @@ struct CustomHash {
 add('数据结构',
     'dsu',
     '并查集',
-    '维护无向连通分量，递归路径压缩配合按秩合并。使用全局 father、rk 数组和 init、find、merge 函数。元素编号为 1..n，0 号位置不使用。',
+    '维护无向连通分量，递归路径压缩配合按秩合并。使用全局 father、rk、sz 数组和 init、find、merge、size 函数，size(id) 查询所在集合的元素数量。元素编号为 1..n，0 号位置不使用。',
     '均摊 O(α(n)) 每次操作；空间 O(n)。',
-    '每组数据先调用 init(n)。rk 表示秩，路径压缩后不等于实际树高，也不是集合大小。merge 成功时可在调用处将连通块数量减一。普通并查集不能删除边；回滚版本不要使用路径压缩。',
+    '每组数据先调用 init(n)。rk 表示秩，路径压缩后不等于实际树高，也不是集合大小。只有根节点的 sz 才表示当前集合大小，应通过 size(id) 查询。merge 成功时可在调用处将连通块数量减一。普通并查集不能删除边；回滚版本不要使用路径压缩。',
     r'''
-vector<int> father, rk;
+vector<int> father, rk, sz;
 
-// 初始化编号 1..n 的独立集合，初始秩为 1；时间和空间 O(n)。
+// 初始化编号 1..n 的独立集合，初始秩和集合大小均为 1；时间和空间 O(n)。
 void init(int n) {
     father.resize(n + 1);
     rk.assign(n + 1, 1);
+    sz.assign(n + 1, 1);
     for (int i = 1; i <= n; ++i) father[i] = i;
 }
 
@@ -216,23 +218,33 @@ int find(int id) {
     return father[id];
 }
 
-// 按秩合并 u、v 所在集合；成功返回 true，原本同集合返回 false。
+// 按秩合并 u、v 所在集合并更新集合大小；成功返回 true，原本同集合返回 false。
 // 要求顶点为 1..n；配合路径压缩，均摊时间 O(α(n))。
 bool merge(int u, int v) {
     int a = find(u), b = find(v);
     if (a == b) return false;
     if (rk[a] > rk[b]) {
         father[b] = a;
-    } else if (rk[b] > rk[a]) {
+        sz[a] += sz[b];
+    }
+    else if (rk[b] > rk[a]) {
         father[a] = b;
-    } else {
+        sz[b] += sz[a];
+    }
+    else {
         father[b] = a;
         rk[a]++;
+        sz[a] += sz[b];
     }
     return true;
 }
+
+// 返回 id 所在集合的元素数量；要求 1<=id<=n，均摊时间 O(α(n))。
+int size(int id) {
+    return sz[find(id)];
+}
 ''',
-    'init(n); int num=n; 若 merge(u,v) 返回 true，则 --num；find(u)==find(v) 判断是否连通。')
+    'init(n); int num=n; 若 merge(u,v) 返回 true，则 --num；find(u)==find(v) 判断是否连通；size(u) 查询 u 所在集合的元素数量。')
 
 add('数据结构',
     'rollback',
@@ -242,15 +254,15 @@ add('数据结构',
     '禁止路径压缩。失败的 merge 不入栈，所以应记录 snapshot 而非假定每次操作都对应一条历史。',
     r'''
 struct RollbackDSU {
-    vector<int> p, sz;
+    vector<int> father, sz;
     vector<pair<int, int>> hist;
     // 创建编号 1..n 的独立集合并清空合并历史，时间和空间 O(n)。
-    RollbackDSU(int n) : p(n + 1), sz(n + 1, 1) {
-        iota(p.begin(), p.end(), 0);
+    RollbackDSU(int n) : father(n + 1), sz(n + 1, 1) {
+        iota(father.begin(), father.end(), 0);
     }
     // 沿父指针返回 x 的代表元，不压缩路径以便回滚；时间 O(log n)。
     int find(int x) {
-        while (x != p[x]) x = p[x];
+        while (x != father[x]) x = father[x];
         return x;
     }
     // 返回当前成功合并历史的长度，作为之后 rollback 的快照；不修改状态，O(1)。
@@ -263,7 +275,7 @@ struct RollbackDSU {
         if (a == b) return false;
         if (sz[a] < sz[b]) swap(a, b);
         hist.push_back({b, sz[a]});
-        p[b] = a;
+        father[b] = a;
         sz[a] += sz[b];
         return true;
     }
@@ -273,8 +285,8 @@ struct RollbackDSU {
         while ((int)hist.size() > s) {
             auto [b, old] = hist.back();
             hist.pop_back();
-            sz[p[b]] = old;
-            p[b] = b;
+            sz[father[b]] = old;
+            father[b] = b;
         }
     }
 };
@@ -447,7 +459,8 @@ private:
         int m = (l + r) / 2;
         if (pos <= m) {
             set(p * 2, l, m, pos, v);
-        } else {
+        }
+        else {
             set(p * 2 + 1, m + 1, r, pos, v);
         }
         pushup(p);
@@ -622,7 +635,8 @@ private:
         int m = (l + r) / 2;
         if (pos <= m) {
             set(p * 2, l, m, pos, v);
-        } else {
+        }
+        else {
             set(p * 2 + 1, m + 1, r, pos, v);
         }
         pushup(p);
@@ -637,7 +651,8 @@ private:
         int m = (l + r) / 2;
         if (pos <= m) {
             add(p * 2, l, m, pos, v);
-        } else {
+        }
+        else {
             add(p * 2 + 1, m + 1, r, pos, v);
         }
         pushup(p);
@@ -734,7 +749,8 @@ struct PersistentKth {
             int mid = (l + r) / 2;
             if (x < mid) {
                 t[p].l = insert(t[old].l, l, mid, x);
-            } else {
+            }
+            else {
                 t[p].r = insert(t[old].r, mid, r, x);
             }
         }
@@ -755,7 +771,8 @@ struct PersistentKth {
                 a = t[a].l;
                 b = t[b].l;
                 R = mid;
-            } else {
+            }
+            else {
                 k -= c;
                 a = t[a].r;
                 b = t[b].r;
@@ -968,30 +985,30 @@ add('图论与树',
 const i64 INF = (1LL << 62);
 
 // 求源点 s 到各点的最短距离，g[u] 存 {终点,边权}，顶点使用 1..n。
-// 要求边权非负，返回 d[1..n]，不可达为 INF，有限答案须小于 INF；不修改图。
+// 要求边权非负，返回 dist[1..n]，不可达为 INF，有限答案须小于 INF；不修改图。
 // 堆实现时间 O((n+m)log(n+m))，空间 O(n+m)。
 vector<i64> dijkstra(const vector<vector<pair<int, i64>>>& g, int s) {
-    vector<i64> d(g.size(), INF);
-    d[s] = 0;
+    vector<i64> dist(g.size(), INF);
+    dist[s] = 0;
     priority_queue<pair<i64, int>, vector<pair<i64, int>>, greater<pair<i64, int>>> q;
     q.push({0, s});
     while (!q.empty()) {
         auto [du, u] = q.top();
         q.pop();
-        if (du != d[u]) continue;
+        if (du != dist[u]) continue;
         for (auto [v, w] : g[u]) {
             assert(w >= 0);
             if (w >= INF - du) continue;
-            if (d[v] > du + w) {
-                d[v] = du + w;
-                q.push({d[v], v});
+            if (dist[v] > du + w) {
+                dist[v] = du + w;
+                q.push({dist[v], v});
             }
         }
     }
-    return d;
+    return dist;
 }
 ''',
-    'vector<vector<pair<int,i64>>> g(n); g[u].push_back({v,w}); auto d=dijkstra(g,s);',
+    'vector<vector<pair<int,i64>>> g(n); g[u].push_back({v,w}); auto dist=dijkstra(g,s);',
     section='单源最短路')
 
 add('图论与树',
@@ -1005,10 +1022,10 @@ add('图论与树',
 // 返回各点距离，不可达为 1LL<<62；不修改图，时间 O(n+m)。
 vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
     const i64 INF = (1LL << 62);
-    vector<i64> d(g.size(), INF);
+    vector<i64> dist(g.size(), INF);
     vector<char> done(g.size());
     deque<int> q;
-    d[s] = 0;
+    dist[s] = 0;
     q.push_front(s);
     while (!q.empty()) {
         int u = q.front();
@@ -1017,17 +1034,18 @@ vector<i64> bfs01(const vector<vector<pair<int, int>>>& g, int s) {
         done[u] = 1;
         for (auto [v, w] : g[u]) {
             assert(w == 0 || w == 1);
-            if (d[v] > d[u] + w) {
-                d[v] = d[u] + w;
+            if (dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
                 if (w) {
                     q.push_back(v);
-                } else {
+                }
+                else {
                     q.push_front(v);
                 }
             }
         }
     }
-    return d;
+    return dist;
 }
 ''',
     '不可达点距离为 (1LL << 62)。无权图直接使用普通队列 BFS。',
@@ -1049,23 +1067,23 @@ struct Edge {
 // 允许负权，不修改输入；时间 O(nm)，空间 O(n)。
 pair<bool, vector<i128>> bellman_ford(int n, const vector<Edge>& e, int s) {
     const i128 INF = (i128(1) << 120);
-    vector<i128> d(n + 1, INF);
-    d[s] = 0;
+    vector<i128> dist(n + 1, INF);
+    dist[s] = 0;
     for (int it = 0; it < n; ++it) {
         bool changed = false;
         for (auto [u, v, w] : e) {
-            if (d[u] != INF && d[v] > d[u] + w) {
-                d[v] = d[u] + w;
+            if (dist[u] != INF && dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
                 changed = true;
             }
         }
-        if (!changed) return {false, d};
-        if (it == n - 1) return {true, d};
+        if (!changed) return {false, dist};
+        if (it == n - 1) return {true, dist};
     }
-    return {false, d};
+    return {false, dist};
 }
 ''',
-    'auto [negative,d]=bellman_ford(n,edges,s); 仅当 negative==false 时使用 d；不可达为 i128(1)<<120。',
+    'auto [negative,dist]=bellman_ford(n,edges,s); 仅当 negative==false 时使用 dist；不可达为 i128(1)<<120。',
     section='单源最短路')
 
 add('图论与树',
@@ -1143,7 +1161,8 @@ void solve() {
     auto [result, used] = kruskal(n, arr);
     if (used != n - 1) {
         cout << -1 << '\n';
-    } else {
+    }
+    else {
         cout << result << '\n';
     }
 }
@@ -1184,7 +1203,8 @@ struct SCC {
                     if (i == (int)g[u].size()) {
                         order.push_back(u);
                         st.pop_back();
-                    } else {
+                    }
+                    else {
                         int v = g[u][i++];
                         if (!vis[v]) {
                             vis[v] = 1;
@@ -1247,7 +1267,8 @@ struct TarjanSCC {
             if (!dfn[v]) {
                 dfs(v);
                 low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
+            }
+            else if (in_stack[v]) {
                 // Only vertices still in the SCC stack can lower low[u].
                 low[u] = min(low[u], dfn[v]);
             }
@@ -1384,7 +1405,8 @@ struct LowLink {
                 if (pe != -1 && low[v] >= dfn[u]) {
                     cut[u] = 1;
                 }
-            } else {
+            }
+            else {
                 low[u] = min(low[u], dfn[v]);
             }
         }
@@ -1413,26 +1435,26 @@ add('图论与树',
 struct HLD {
     int n;
     vector<vector<int>> g;
-    vector<int> par, dep, sz, heavy, head, pos, rev;
+    vector<int> father, dep, sz, heavy, head, pos, rev;
     // 以 root 为根对非空连通无向树 g[1..n] 做迭代树链剖分，构造父亲、深度和 dfs 序。
     // pos/rev 使用 1 下标，子树区间为 [pos[u],pos[u]+sz[u]-1]；时间和空间 O(n)。
     HLD(vector<vector<int>> g, int root = 1)
-        : n((int)g.size() - 1), g(move(g)), par(n + 1, -1), dep(n + 1), sz(n + 1, 1),
+        : n((int)g.size() - 1), g(move(g)), father(n + 1, -1), dep(n + 1), sz(n + 1, 1),
           heavy(n + 1, -1), head(n + 1), pos(n + 1), rev(n + 1) {
         vector<int> ord{root};
-        par[root] = root;
+        father[root] = root;
         for (int i = 0; i < n; ++i) {
             int u = ord[i];
             for (int v : this->g[u]) {
-                if (v != par[u]) {
-                    par[v] = u;
+                if (v != father[u]) {
+                    father[v] = u;
                     dep[v] = dep[u] + 1;
                     ord.push_back(v);
                 }
             }
         }
         for (int i = n - 1; i > 0; --i) {
-            int u = ord[i], p = par[u];
+            int u = ord[i], p = father[u];
             sz[p] += sz[u];
             if (heavy[p] == -1 || sz[u] > sz[heavy[p]]) {
                 heavy[p] = u;
@@ -1448,7 +1470,7 @@ struct HLD {
                 pos[u] = timer;
                 rev[timer++] = u;
                 for (int v : this->g[u]) {
-                    if (v != par[u] && v != heavy[u]) {
+                    if (v != father[u] && v != heavy[u]) {
                         st.push_back({v, v});
                     }
                 }
@@ -1459,7 +1481,7 @@ struct HLD {
     int lca(int u, int v) {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);
-            u = par[head[u]];
+            u = father[head[u]];
         }
         return dep[u] < dep[v] ? u : v;
     }
@@ -1470,7 +1492,7 @@ struct HLD {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);
             f(pos[head[u]], pos[u]);
-            u = par[head[u]];
+            u = father[head[u]];
         }
         if (pos[u] > pos[v]) swap(u, v);
         f(pos[u], pos[v]);
@@ -1673,17 +1695,17 @@ struct MinCostFlow {
         i64 f = 0;
         i128 cost = 0, INF = i128(1) << 120;
         while (f < limit) {
-            vector<i128> d(n + 1, INF);
+            vector<i128> dist(n + 1, INF);
             vector<int> pv(n + 1, -1), pe(n + 1, -1);
-            d[s] = 0;
+            dist[s] = 0;
             for (int z = 0; z < n - 1; ++z) {
                 bool changed = false;
                 for (int u = 1; u <= n; ++u) {
-                    if (d[u] != INF) {
+                    if (dist[u] != INF) {
                         for (int i = 0; i < (int)g[u].size(); ++i) {
                             auto e = g[u][i];
-                            if (e.cap > 0 && d[e.v] > d[u] + e.cost) {
-                                d[e.v] = d[u] + e.cost;
+                            if (e.cap > 0 && dist[e.v] > dist[u] + e.cost) {
+                                dist[e.v] = dist[u] + e.cost;
                                 pv[e.v] = u;
                                 pe[e.v] = i;
                                 changed = true;
@@ -1704,7 +1726,7 @@ struct MinCostFlow {
                 g[v][e.rev].cap += add;
             }
             f += add;
-            cost += i128(add) * d[t];
+            cost += i128(add) * dist[t];
         }
         return {f, cost};
     }
@@ -1737,8 +1759,8 @@ public:
         diff[u] += val;
         diff[v] += val;
         diff[p] -= val;
-        if (h.par[p] != p) {
-            diff[h.par[p]] -= val;
+        if (h.father[p] != p) {
+            diff[h.father[p]] -= val;
         }
     }
 
@@ -1748,7 +1770,7 @@ public:
         vector<i64> ans = diff;
         for (int i = h.n; i > 1; --i) {
             int u = h.rev[i];
-            ans[h.par[u]] += ans[u];
+            ans[h.father[u]] += ans[u];
         }
         return ans;
     }
@@ -1795,7 +1817,7 @@ public:
         vector<i64> ans = diff;
         for (int i = h.n; i > 1; --i) {
             int u = h.rev[i];
-            ans[h.par[u]] += ans[u];
+            ans[h.father[u]] += ans[u];
         }
         ans[h.rev[1]] = 0;
         return ans;
@@ -1931,14 +1953,14 @@ add('字符串',
     r'''
 struct StringHash {
     static constexpr i64 M1 = 1000000007, M2 = 1000000009, B = 911382323;
-    vector<i64> h1, h2, p1, p2;
+    vector<i64> pre_hash1, pre_hash2, p1, p2;
     // 预处理字符串 s 的双模前缀哈希和幂表，字符串位置为 0 下标；时间和空间 O(|s|)。
     StringHash(const string& s)
-        : h1(s.size() + 1), h2(s.size() + 1), p1(s.size() + 1, 1), p2(s.size() + 1, 1) {
+        : pre_hash1(s.size() + 1), pre_hash2(s.size() + 1), p1(s.size() + 1, 1), p2(s.size() + 1, 1) {
         for (int i = 0; i < (int)s.size(); ++i) {
             int x = (unsigned char)s[i] + 1;
-            h1[i + 1] = (h1[i] * B + x) % M1;
-            h2[i + 1] = (h2[i] * B + x) % M2;
+            pre_hash1[i + 1] = (pre_hash1[i] * B + x) % M1;
+            pre_hash2[i + 1] = (pre_hash2[i] * B + x) % M2;
             p1[i + 1] = p1[i] * B % M1;
             p2[i + 1] = p2[i] * B % M2;
         }
@@ -1946,8 +1968,8 @@ struct StringHash {
     // 返回子串 s[l..r) 的两个模数下哈希，要求 0<=l<=r<=|s|；时间 O(1)。
     // 比较子串时需同时比较长度；即使双哈希相等，也仍存在碰撞可能。
     pair<i64, i64> get(int l, int r) const {
-        return {(h1[r] - h1[l] * p1[r - l] % M1 + M1) % M1,
-                (h2[r] - h2[l] * p2[r - l] % M2 + M2) % M2};
+        return {(pre_hash1[r] - pre_hash1[l] * p1[r - l] % M1 + M1) % M1,
+                (pre_hash2[r] - pre_hash2[l] * p2[r - l] % M2 + M2) % M2};
     }
 };
 ''',
@@ -1999,7 +2021,8 @@ struct Aho {
                 if (v) {
                     t[v].fail = t[t[u].fail].go[c];
                     q.push(v);
-                } else {
+                }
+                else {
                     t[u].go[c] = t[t[u].fail].go[c];
                 }
             }
@@ -2111,11 +2134,13 @@ struct SAM {
         }
         if (p == -1) {
             t[cur].link = 0;
-        } else {
+        }
+        else {
             int q = t[p].go[c];
             if (t[p].len + 1 == t[q].len) {
                 t[cur].link = q;
-            } else {
+            }
+            else {
                 int clone = t.size();
                 t.push_back(t[q]);
                 t[clone].len = t[p].len + 1;
@@ -2180,7 +2205,8 @@ int min_rotation(const string& s) {
         if (t[i + k] > t[j + k]) {
             i += k + 1;
             if (i == j) ++i;
-        } else {
+        }
+        else {
             j += k + 1;
             if (i == j) ++j;
         }
@@ -2735,7 +2761,8 @@ i64 linear_nth(const vector<i64>& init, const vector<i64>& c, u64 n, i64 mod) {
     r[0] = 1 % mod;
     if (k == 1) {
         x[0] = c[0];
-    } else {
+    }
+    else {
         x[1] = 1 % mod;
     }
     for (; n; n >>= 1, x = combine(x, x)) {
@@ -3067,7 +3094,8 @@ pair<big_int, big_int> divmod(const big_int& a, const big_int& b) {
         // remainder = remainder*base + a.arr[i]。
         if (remainder.is_zero()) {
             remainder.arr[0] = a.arr[i];
-        } else {
+        }
+        else {
             remainder.arr.insert(remainder.arr.begin(), a.arr[i]);
         }
         int l = 0, r = big_int::base;
@@ -3076,7 +3104,8 @@ pair<big_int, big_int> divmod(const big_int& a, const big_int& b) {
             big_int product = chen(b, m);
             if (compare(product, remainder) <= 0) {
                 l = m;
-            } else {
+            }
+            else {
                 r = m;
             }
         }
@@ -3170,21 +3199,22 @@ add('动态规划与优化',
 // 结果列表不带占位，不保证字典序最小；时间 O(n log n)，空间 O(n)。
 vector<int> lis_indices(const vector<i64>& a) {
     vector<i64> tail;
-    vector<int> at, pre(a.size(), -1);
+    vector<int> at, prev(a.size(), -1);
     for (int i = 1; i < (int)a.size(); ++i) {
         int k = lower_bound(tail.begin(), tail.end(), a[i]) - tail.begin();
-        if (k) pre[i] = at[k - 1];
+        if (k) prev[i] = at[k - 1];
         if (k == (int)tail.size()) {
             tail.push_back(a[i]);
             at.push_back(i);
-        } else {
+        }
+        else {
             tail[k] = a[i];
             at[k] = i;
         }
     }
     vector<int> ans;
     if (at.empty()) return ans;
-    for (int i = at.back(); i != -1; i = pre[i]) ans.push_back(i);
+    for (int i = at.back(); i != -1; i = prev[i]) ans.push_back(i);
     reverse(ans.begin(), ans.end());
     return ans;
 }
@@ -3208,7 +3238,8 @@ int lcs(const string& a, const string& b) {
             int old = dp[j];
             if (x == b[j - 1]) {
                 dp[j] = diag + 1;
-            } else {
+            }
+            else {
                 dp[j] = max(dp[j], dp[j - 1]);
             }
             diag = old;
@@ -3304,12 +3335,12 @@ add('动态规划与优化',
 i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
     int n = (int)g.size() - 1;
     if (!n) return 0;
-    vector<int> p(n + 1, -1), ord{1};
-    p[1] = 1;
+    vector<int> father(n + 1, -1), ord{1};
+    father[1] = 1;
     for (int i = 0; i < n; ++i) {
         for (int v : g[ord[i]]) {
-            if (v != p[ord[i]]) {
-                p[v] = ord[i];
+            if (v != father[ord[i]]) {
+                father[v] = ord[i];
                 ord.push_back(v);
             }
         }
@@ -3319,7 +3350,7 @@ i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
         int u = ord[i];
         dp[u][1] = w[u];
         for (int v : g[u]) {
-            if (v != p[u]) {
+            if (v != father[u]) {
                 dp[u][0] += max(dp[v][0], dp[v][1]);
                 dp[u][1] += dp[v][0];
             }
@@ -3377,7 +3408,8 @@ struct LiChao {
         if (r - l == 1) return;
         if (left != mid) {
             add(p * 2, l, m, v);
-        } else {
+        }
+        else {
             add(p * 2 + 1, m, r, v);
         }
     }
@@ -3397,7 +3429,8 @@ struct LiChao {
             if (idx < m) {
                 p *= 2;
                 r = m;
-            } else {
+            }
+            else {
                 p = p * 2 + 1;
                 l = m;
             }

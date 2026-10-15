@@ -8,26 +8,26 @@ using u64 = unsigned long long;
 struct HLD {
     int n;
     vector<vector<int>> g;
-    vector<int> par, dep, sz, heavy, head, pos, rev;
+    vector<int> father, dep, sz, heavy, head, pos, rev;
     // 以 root 为根对非空连通无向树 g[1..n] 做迭代树链剖分，构造父亲、深度和 dfs 序。
     // pos/rev 使用 1 下标，子树区间为 [pos[u],pos[u]+sz[u]-1]；时间和空间 O(n)。
     HLD(vector<vector<int>> g, int root = 1)
-        : n((int)g.size() - 1), g(move(g)), par(n + 1, -1), dep(n + 1), sz(n + 1, 1),
+        : n((int)g.size() - 1), g(move(g)), father(n + 1, -1), dep(n + 1), sz(n + 1, 1),
           heavy(n + 1, -1), head(n + 1), pos(n + 1), rev(n + 1) {
         vector<int> ord{root};
-        par[root] = root;
+        father[root] = root;
         for (int i = 0; i < n; ++i) {
             int u = ord[i];
             for (int v : this->g[u]) {
-                if (v != par[u]) {
-                    par[v] = u;
+                if (v != father[u]) {
+                    father[v] = u;
                     dep[v] = dep[u] + 1;
                     ord.push_back(v);
                 }
             }
         }
         for (int i = n - 1; i > 0; --i) {
-            int u = ord[i], p = par[u];
+            int u = ord[i], p = father[u];
             sz[p] += sz[u];
             if (heavy[p] == -1 || sz[u] > sz[heavy[p]]) {
                 heavy[p] = u;
@@ -43,7 +43,7 @@ struct HLD {
                 pos[u] = timer;
                 rev[timer++] = u;
                 for (int v : this->g[u]) {
-                    if (v != par[u] && v != heavy[u]) {
+                    if (v != father[u] && v != heavy[u]) {
                         st.push_back({v, v});
                     }
                 }
@@ -54,7 +54,7 @@ struct HLD {
     int lca(int u, int v) {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);
-            u = par[head[u]];
+            u = father[head[u]];
         }
         return dep[u] < dep[v] ? u : v;
     }
@@ -65,7 +65,7 @@ struct HLD {
         while (head[u] != head[v]) {
             if (dep[head[u]] < dep[head[v]]) swap(u, v);
             f(pos[head[u]], pos[u]);
-            u = par[head[u]];
+            u = father[head[u]];
         }
         if (pos[u] > pos[v]) swap(u, v);
         f(pos[u], pos[v]);
@@ -91,8 +91,8 @@ public:
         diff[u] += val;
         diff[v] += val;
         diff[p] -= val;
-        if (h.par[p] != p) {
-            diff[h.par[p]] -= val;
+        if (h.father[p] != p) {
+            diff[h.father[p]] -= val;
         }
     }
 
@@ -102,7 +102,7 @@ public:
         vector<i64> ans = diff;
         for (int i = h.n; i > 1; --i) {
             int u = h.rev[i];
-            ans[h.par[u]] += ans[u];
+            ans[h.father[u]] += ans[u];
         }
         return ans;
     }

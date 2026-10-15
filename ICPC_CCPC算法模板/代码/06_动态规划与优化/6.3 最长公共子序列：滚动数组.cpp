@@ -15,7 +15,8 @@ int lcs(const string& a, const string& b) {
             int old = dp[j];
             if (x == b[j - 1]) {
                 dp[j] = diag + 1;
-            } else {
+            }
+            else {
                 dp[j] = max(dp[j], dp[j - 1]);
             }
             diag = old;

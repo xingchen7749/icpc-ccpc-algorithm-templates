@@ -26,7 +26,8 @@ struct PersistentKth {
             int mid = (l + r) / 2;
             if (x < mid) {
                 t[p].l = insert(t[old].l, l, mid, x);
-            } else {
+            }
+            else {
                 t[p].r = insert(t[old].r, mid, r, x);
             }
         }
@@ -47,7 +48,8 @@ struct PersistentKth {
                 a = t[a].l;
                 b = t[b].l;
                 R = mid;
-            } else {
+            }
+            else {
                 k -= c;
                 a = t[a].r;
                 b = t[b].r;

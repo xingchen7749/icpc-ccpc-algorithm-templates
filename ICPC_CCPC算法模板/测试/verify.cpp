@@ -53,6 +53,24 @@ void structures(){
     CHECK(cp_dsu::find(1)==cp_dsu::find(5));CHECK(cp_dsu::find(1)!=cp_dsu::find(2));
     cp_dsu::init(1);CHECK(!cp_dsu::merge(1,1));
     cp_dsu::init(7);for(int i=1;i<=7;++i)CHECK(cp_dsu::find(i)==i);
+    for(int i=1;i<=7;++i)CHECK(cp_dsu::size(i)==1);
+    CHECK(cp_dsu::merge(1,2));CHECK(cp_dsu::merge(1,3));
+    CHECK(cp_dsu::merge(4,1));CHECK(cp_dsu::size(4)==4);
+    CHECK(!cp_dsu::merge(2,4));CHECK(!cp_dsu::merge(3,3));
+    for(int i=1;i<=4;++i)CHECK(cp_dsu::size(i)==4);
+    CHECK(cp_dsu::size(7)==1);
+    cp_dsu::init(2);CHECK(cp_dsu::size(1)==1);CHECK(cp_dsu::size(2)==1);
+    for(int z=0;z<30;++z){
+        int n=rnd(1,30);cp_dsu::init(n);vector<int> label(n+1);
+        iota(label.begin(),label.end(),0);
+        for(int it=0;it<60;++it){
+            int u=rnd(1,n),v=rnd(1,n),a=label[u],b=label[v];
+            CHECK(cp_dsu::merge(u,v)==(a!=b));
+            for(int i=1;i<=n;++i)if(label[i]==b)label[i]=a;
+            for(int i=1;i<=n;++i)
+                CHECK(cp_dsu::size(i)==count(label.begin()+1,label.end(),label[i]));
+        }
+    }
     cp_rollback::RollbackDSU rb(5);rb.merge(1,5);int snap=rb.snapshot();
     rb.merge(5,2);rb.merge(1,2);CHECK(rb.find(1)==rb.find(2));rb.rollback(snap);
     CHECK(rb.find(1)!=rb.find(2));CHECK(rb.sz[rb.find(1)]==2);rb.rollback(0);

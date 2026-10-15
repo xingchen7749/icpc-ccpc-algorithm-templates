@@ -26,7 +26,8 @@ struct TarjanSCC {
             if (!dfn[v]) {
                 dfs(v);
                 low[u] = min(low[u], low[v]);
-            } else if (in_stack[v]) {
+            }
+            else if (in_stack[v]) {
                 // Only vertices still in the SCC stack can lower low[u].
                 low[u] = min(low[u], dfn[v]);
             }

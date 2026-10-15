@@ -30,17 +30,17 @@ struct MinCostFlow {
         i64 f = 0;
         i128 cost = 0, INF = i128(1) << 120;
         while (f < limit) {
-            vector<i128> d(n + 1, INF);
+            vector<i128> dist(n + 1, INF);
             vector<int> pv(n + 1, -1), pe(n + 1, -1);
-            d[s] = 0;
+            dist[s] = 0;
             for (int z = 0; z < n - 1; ++z) {
                 bool changed = false;
                 for (int u = 1; u <= n; ++u) {
-                    if (d[u] != INF) {
+                    if (dist[u] != INF) {
                         for (int i = 0; i < (int)g[u].size(); ++i) {
                             auto e = g[u][i];
-                            if (e.cap > 0 && d[e.v] > d[u] + e.cost) {
-                                d[e.v] = d[u] + e.cost;
+                            if (e.cap > 0 && dist[e.v] > dist[u] + e.cost) {
+                                dist[e.v] = dist[u] + e.cost;
                                 pv[e.v] = u;
                                 pe[e.v] = i;
                                 changed = true;
@@ -61,7 +61,7 @@ struct MinCostFlow {
                 g[v][e.rev].cap += add;
             }
             f += add;
-            cost += i128(add) * d[t];
+            cost += i128(add) * dist[t];
         }
         return {f, cost};
     }

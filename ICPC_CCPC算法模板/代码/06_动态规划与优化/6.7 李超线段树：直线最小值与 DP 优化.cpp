@@ -45,7 +45,8 @@ struct LiChao {
         if (r - l == 1) return;
         if (left != mid) {
             add(p * 2, l, m, v);
-        } else {
+        }
+        else {
             add(p * 2 + 1, m, r, v);
         }
     }
@@ -65,7 +66,8 @@ struct LiChao {
             if (idx < m) {
                 p *= 2;
                 r = m;
-            } else {
+            }
+            else {
                 p = p * 2 + 1;
                 l = m;
             }

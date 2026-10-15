@@ -44,7 +44,8 @@ struct Aho {
                 if (v) {
                     t[v].fail = t[t[u].fail].go[c];
                     q.push(v);
-                } else {
+                }
+                else {
                     t[u].go[c] = t[t[u].fail].go[c];
                 }
             }

@@ -10,12 +10,12 @@ using u64 = unsigned long long;
 i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
     int n = (int)g.size() - 1;
     if (!n) return 0;
-    vector<int> p(n + 1, -1), ord{1};
-    p[1] = 1;
+    vector<int> father(n + 1, -1), ord{1};
+    father[1] = 1;
     for (int i = 0; i < n; ++i) {
         for (int v : g[ord[i]]) {
-            if (v != p[ord[i]]) {
-                p[v] = ord[i];
+            if (v != father[ord[i]]) {
+                father[v] = ord[i];
                 ord.push_back(v);
             }
         }
@@ -25,7 +25,7 @@ i64 tree_independent_set(const vector<vector<int>>& g, const vector<i64>& w) {
         int u = ord[i];
         dp[u][1] = w[u];
         for (int v : g[u]) {
-            if (v != p[u]) {
+            if (v != father[u]) {
                 dp[u][0] += max(dp[v][0], dp[v][1]);
                 dp[u][1] += dp[v][0];
             }

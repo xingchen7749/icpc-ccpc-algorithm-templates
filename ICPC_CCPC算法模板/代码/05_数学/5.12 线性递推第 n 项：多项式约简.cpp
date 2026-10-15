@@ -32,7 +32,8 @@ i64 linear_nth(const vector<i64>& init, const vector<i64>& c, u64 n, i64 mod) {
     r[0] = 1 % mod;
     if (k == 1) {
         x[0] = c[0];
-    } else {
+    }
+    else {
         x[1] = 1 % mod;
     }
     for (; n; n >>= 1, x = combine(x, x)) {

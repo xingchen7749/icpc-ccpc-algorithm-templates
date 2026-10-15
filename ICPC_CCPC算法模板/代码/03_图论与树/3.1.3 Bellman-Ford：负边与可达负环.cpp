@@ -14,20 +14,20 @@ struct Edge {
 // 允许负权，不修改输入；时间 O(nm)，空间 O(n)。
 pair<bool, vector<i128>> bellman_ford(int n, const vector<Edge>& e, int s) {
     const i128 INF = (i128(1) << 120);
-    vector<i128> d(n + 1, INF);
-    d[s] = 0;
+    vector<i128> dist(n + 1, INF);
+    dist[s] = 0;
     for (int it = 0; it < n; ++it) {
         bool changed = false;
         for (auto [u, v, w] : e) {
-            if (d[u] != INF && d[v] > d[u] + w) {
-                d[v] = d[u] + w;
+            if (dist[u] != INF && dist[v] > dist[u] + w) {
+                dist[v] = dist[u] + w;
                 changed = true;
             }
         }
-        if (!changed) return {false, d};
-        if (it == n - 1) return {true, d};
+        if (!changed) return {false, dist};
+        if (it == n - 1) return {true, dist};
     }
-    return {false, d};
+    return {false, dist};
 }
 
 void solve() {
