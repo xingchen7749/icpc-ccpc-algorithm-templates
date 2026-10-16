@@ -999,6 +999,108 @@ struct ImplicitTreap {
 ''',
     '依次 append(1),append(2),append(3)，reverse(1,2) 后 values() 为 {0,2,1,3}。')
 
+add('数据结构',
+    'binary_trie',
+    '01 Trie：二进制字典树',
+    '维护非负整数多重集合，支持插入、删除一个数、计数和最大异或查询。构造参数 max_bit 是最高位编号（0..63），默认 63；节点从 1 开始，根为 1，0 表示空子节点。二进制位从 0 开始编号。',
+    '插入、删除、计数和最大异或查询均为 O(max_bit+1)，size 为 O(1)。空间 O(1+历史插入次数×(max_bit+1))；clear 清空节点但不保证释放容量。',
+    '所有操作的参数 x 必须在设定的位宽内；max_bit=63 时支持完整 u64 范围。max_xor 要求集合非空，返回异或值而非选中的数。删除只减少计数，不回收节点，查询必须跳过计数为 0 的分支。节点编号和计数使用 int，规模须在其范围内。',
+    r'''
+// 01 Trie（Binary Trie）：二进制字典树，支持重复数。
+class BinaryTrie {
+private:
+    struct Node {
+        int ch[2] = {};  // 当前位为 0、1 的子节点，0 表示不存在
+        int cnt = 0;    // 经过该节点的数的数量，包含重复数
+    };
+
+    int max_bit;      // 最高二进制位编号，共处理 max_bit+1 位
+    vector<Node> tr;  // tr[0] 占位，tr[1] 为根；删除后保留节点
+
+public:
+    // 建立空字典树；最高位编号 max_bit 必须在 0..63 内。
+    BinaryTrie(int max_bit = 63) : max_bit(max_bit), tr(2) {
+        assert(0 <= max_bit && max_bit <= 63);
+    }
+
+    // 清空所有数并恢复根节点，保留设定的最高位编号。
+    void clear() {
+        tr.assign(2, Node{});
+    }
+
+    // 返回当前数的数量，包含重复数。
+    int size() const {
+        return tr[1].cnt;
+    }
+
+    // 返回 x 的出现次数；x 必须在设定位宽内，不存在时返回 0。
+    int count(u64 x) const {
+        assert(max_bit == 63 || (x >> (max_bit + 1)) == 0);
+        int u = 1;
+        for (int i = max_bit; i >= 0; i--) {
+            int bit = (x >> i) & 1ULL;
+            int v = tr[u].ch[bit];
+            if (v == 0 || tr[v].cnt == 0) return 0;
+            u = v;
+        }
+        return tr[u].cnt;
+    }
+
+    // 插入位宽范围内的 x，允许重复插入。
+    void insert(u64 x) {
+        assert(max_bit == 63 || (x >> (max_bit + 1)) == 0);
+        int u = 1;
+        tr[u].cnt++;
+        for (int i = max_bit; i >= 0; i--) {
+            int bit = (x >> i) & 1ULL;
+            if (tr[u].ch[bit] == 0) {
+                int v = (int)tr.size();
+                tr.emplace_back();
+                tr[u].ch[bit] = v;
+            }
+            u = tr[u].ch[bit];
+            tr[u].cnt++;
+        }
+    }
+
+    // 删除位宽范围内的一个 x；成功返回 true，不存在则返回 false。
+    bool erase(u64 x) {
+        if (count(x) == 0) return false;
+        int u = 1;
+        tr[u].cnt--;
+        for (int i = max_bit; i >= 0; i--) {
+            int bit = (x >> i) & 1ULL;
+            u = tr[u].ch[bit];
+            tr[u].cnt--;
+        }
+        return true;
+    }
+
+    // 返回集合中各个 y 与 x 异或后的最大值，不是 y 本身。
+    // 集合必须非空，x 必须在设定位宽内。
+    u64 max_xor(u64 x) const {
+        assert(size() > 0);
+        assert(max_bit == 63 || (x >> (max_bit + 1)) == 0);
+        int u = 1;
+        u64 ans = 0;
+        for (int i = max_bit; i >= 0; i--) {
+            int bit = (x >> i) & 1ULL;
+            int v = tr[u].ch[bit ^ 1];
+            // 高位优先选择相反位，使异或结果尽量大；跳过已删除的分支。
+            if (v != 0 && tr[v].cnt > 0) {
+                ans |= 1ULL << i;
+                u = v;
+            }
+            else {
+                u = tr[u].ch[bit];
+            }
+        }
+        return ans;
+    }
+};
+''',
+    'BinaryTrie trie(30); 处理第 30..0 位，要求 x<2^31。依次 insert(5)、insert(5)、insert(3)，erase(5) 后 count(5)==1、max_xor(2)==7；再 erase(5) 后 max_xor(2)==1；再次 erase(5) 返回 false。默认 BinaryTrie trie; 支持完整 64 位范围。')
+
 add('图论与树',
     'dijkstra',
     'Dijkstra：非负权最短路',
@@ -1601,15 +1703,17 @@ pair<vector<int>, vector<pair<int, int>>> virtual_tree(HLD& h, vector<int> v) {
 
 add('图论与树',
     'matching',
-    '二分图最大匹配：增广路',
-    '左部 nL 个点、右部 nR 个点；g[u] 只保存从左到右的边。适合中等规模二分图。 顶点编号从 1 开始；传入邻接表时分配 n+1 行，第 0 行不使用。',
+    '二分图最大匹配：匈牙利算法（DFS 增广路）',
+    '使用 DFS 寻找增广路求无权二分图最大匹配，也称 Kuhn 算法，国内竞赛中通常称为匈牙利算法。左部 nL 个点、右部 nR 个点；g[u] 只保存从左到右的边。适合中等规模二分图。左右两侧各自从 1 开始编号，g 分配 nL+1 行，第 0 行不使用。',
     '时间 O(nL·m)，空间 O(nL+nR+m)。大图优先考虑 Hopcroft-Karp 或 Dinic。',
     '左右两侧独立编号。每次寻找增广路都需要新的访问标记。最大匹配不是一般图匹配，也不是最大权匹配。',
     r'''
+// Kuhn 算法（以 Harold W. Kuhn 命名）：国内竞赛中通常称为匈牙利算法。
+// 使用 DFS（Depth-First Search，深度优先搜索）寻找增广路，求无权二分图最大匹配。
 struct BipartiteMatch {
     int nL, nR, timer = 0;
     vector<vector<int>> g;
-    // mr[v]：右侧顶点 v 匹配的左侧顶点，0 表示未匹配。
+    // mr[v]：右侧顶点 v 匹配的左侧顶点，-1 表示未匹配。
     // seen[v]：右侧顶点最近被搜索的轮次；timer：当前搜索轮次。
     // nL、nR：左右两侧的顶点数量，各自从 1 开始编号。
     vector<int> mr, seen;

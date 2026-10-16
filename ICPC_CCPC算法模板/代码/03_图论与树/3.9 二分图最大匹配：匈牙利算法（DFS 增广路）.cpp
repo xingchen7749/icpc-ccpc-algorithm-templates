@@ -5,10 +5,12 @@ using i128 = __int128_t;
 using u64 = unsigned long long;
 // #define int long long
 
+// Kuhn 算法（以 Harold W. Kuhn 命名）：国内竞赛中通常称为匈牙利算法。
+// 使用 DFS（Depth-First Search，深度优先搜索）寻找增广路，求无权二分图最大匹配。
 struct BipartiteMatch {
     int nL, nR, timer = 0;
     vector<vector<int>> g;
-    // mr[v]：右侧顶点 v 匹配的左侧顶点，0 表示未匹配。
+    // mr[v]：右侧顶点 v 匹配的左侧顶点，-1 表示未匹配。
     // seen[v]：右侧顶点最近被搜索的轮次；timer：当前搜索轮次。
     // nL、nR：左右两侧的顶点数量，各自从 1 开始编号。
     vector<int> mr, seen;

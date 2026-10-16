@@ -54,6 +54,7 @@ def check():
         source = (OUT/'代码'/relative).read_text(encoding='utf-8')
         assert source.startswith('#include <bits/stdc++.h>'), key
         assert source.count('void solve()') == 1, key
+        assert 'while (T--) solve();' in source, key
         assert source.count('signed main()') == 1, key
     print(f'Navigation and filenames OK: {len(ENTRIES)} programs, {len(documents)} documents.')
 
