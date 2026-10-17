@@ -9,20 +9,22 @@ using u64 = unsigned long long;
 
 
 namespace cp_binary {
-// 在候选区间 [lo,hi) 中寻找第一个使 ok(x) 为真的值，不存在则返回原 hi。
-// 要求谓词先假后真，且 hi-lo 不溢出；调用 ok 的次数为 O(log(hi-lo+1))。
+// 在开区间 (l,r) 中寻找第一个使 ok(x) 为真的值，不存在则返回初始 r。
+// l 为假边界，r 为真边界；两端可为虚拟哨兵，不会调用 ok。
+// 要求 l<r、r-l 不溢出，条件先假后真；判定次数为 O(log(r-l))。
+// 对 arr[1..n]，传入 l=0、r=n+1；返回 n+1 表示不存在。
 template <class Pred>
-i64 first_true(i64 lo, i64 hi, Pred ok) {
-    while (lo < hi) {
-        i64 mid = lo + (hi - lo) / 2;
+i64 first_true(i64 l, i64 r, Pred ok) {
+    while (l + 1 < r) {
+        i64 mid = l + (r - l) / 2;
         if (ok(mid)) {
-            hi = mid;
+            r = mid;
         }
         else {
-            lo = mid + 1;
+            l = mid;
         }
     }
-    return lo;
+    return r;
 }
 }
 

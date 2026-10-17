@@ -16,8 +16,8 @@ mt19937 rng(20261006);
 int rnd(int l,int r){return uniform_int_distribution<int>(l,r)(rng);}
 
 void basics(){
-    for(int n=0;n<100;++n)for(int k=0;k<=n;++k)
-        CHECK(cp_binary::first_true(0,n,[&](i64 x){return x>=k;})==k);
+    for(int n=0;n<100;++n)for(int k=1;k<=n+1;++k)
+        CHECK(cp_binary::first_true(0,n+1,[&](i64 x){CHECK(1<=x && x<=n);return x>=k;})==k);
     CHECK(cp_compress::compress(vector<int>{999,3,1,3,2})==vector<int>({0,1,2,3}));
     CHECK(cp_compress::rank_of(vector<int>{0,1,2,3},2)==2);
     CHECK(cp_prefix::prefix_sum({999,1,2,3})==vector<i64>({0,1,3,6}));

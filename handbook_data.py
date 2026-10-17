@@ -35,27 +35,29 @@ signed main() {
 add('基础与技巧',
     'binary',
     '二分边界与答案二分',
-    '在单调谓词 false...false,true...true 上找第一个 true。搜索域为 [lo,hi)，hi 可以作为不存在的哨兵。 例外：lo、hi 是候选数值而非数组下标；搜索域仍为 [lo,hi)，hi 是无解哨兵。',
-    'O(log(hi-lo)) 次判定；空间 O(1)。',
-    '先证明单调性，再确认端点含义。要求 hi-lo 在 i64 范围内。浮点二分固定迭代次数通常比只依赖 eps 更稳定。',
+    '使用开区间 (l,r) 二分，在先假后真的条件中找第一个 true。l 是不满足条件的边界，r 是满足条件的边界，两端可使用虚拟哨兵且不会调用 ok。对 1 下标数组 arr[1..n]，初始化 l=0、r=n+1；不存在则返回 n+1。',
+    'O(log(r-l)) 次判定；空间 O(1)。',
+    '要求 l<r、r-l 不溢出，且区间内条件先假后真。初始 l、r 不参与检查；实际候选闭区间 [L,R] 应传入 L-1、R+1，并确保哨兵可表示。循环结束时 r 是第一个真，l 是最后一个假；返回初始 r 表示候选中不存在真。',
     r'''
-// 在候选区间 [lo,hi) 中寻找第一个使 ok(x) 为真的值，不存在则返回原 hi。
-// 要求谓词先假后真，且 hi-lo 不溢出；调用 ok 的次数为 O(log(hi-lo+1))。
+// 在开区间 (l,r) 中寻找第一个使 ok(x) 为真的值，不存在则返回初始 r。
+// l 为假边界，r 为真边界；两端可为虚拟哨兵，不会调用 ok。
+// 要求 l<r、r-l 不溢出，条件先假后真；判定次数为 O(log(r-l))。
+// 对 arr[1..n]，传入 l=0、r=n+1；返回 n+1 表示不存在。
 template <class Pred>
-i64 first_true(i64 lo, i64 hi, Pred ok) {
-    while (lo < hi) {
-        i64 mid = lo + (hi - lo) / 2;
+i64 first_true(i64 l, i64 r, Pred ok) {
+    while (l + 1 < r) {
+        i64 mid = l + (r - l) / 2;
         if (ok(mid)) {
-            hi = mid;
+            r = mid;
         }
         else {
-            lo = mid + 1;
+            l = mid;
         }
     }
-    return lo;
+    return r;
 }
 ''',
-    'first_true(0, 11, [](i64 x){ return x*x >= 30; }) 返回 6；若所有候选均为 false，则返回上界哨兵。')
+    '有序数组 arr[1..n]：first_true(0, n + 1, [&](i64 mid) { return arr[mid] >= x; }) 返回第一个 >=x 的位置，不存在返回 n+1。答案二分：first_true(-1, 11, [](i64 x) { return x*x >= 30; }) 在候选 [0,10] 中返回 6。')
 
 add('基础与技巧',
     'compress',
