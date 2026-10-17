@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 将整数 a 规范为模 m 的非负余数，返回 [0,m-1] 内的值；要求 m>0，时间 O(1)。

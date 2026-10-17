@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 对 g[1..n] 做拓扑排序，返回无占位的顶点顺序列表；不修改图。

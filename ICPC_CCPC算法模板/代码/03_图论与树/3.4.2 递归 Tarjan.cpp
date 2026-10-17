@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // SCC（Strongly Connected Component）：强连通分量；此处采用 Tarjan 算法。

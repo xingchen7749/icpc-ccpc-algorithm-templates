@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // DP（Dynamic Programming）：动态规划；李超树可维护直线形式的转移最小值。

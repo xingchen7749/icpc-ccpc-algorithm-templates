@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 返回 {奇回文半径 d1,偶回文半径 d2}，均为 0 下标。

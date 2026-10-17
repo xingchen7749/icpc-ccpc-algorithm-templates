@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 返回 a[1..n] 的一条最长严格上升子序列对应的原数组下标列表，忽略 a[0]。

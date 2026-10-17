@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 返回字符串 a、b 的最长公共子序列长度，允许不连续；空串对应答案 0。

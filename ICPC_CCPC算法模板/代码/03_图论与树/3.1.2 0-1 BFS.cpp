@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 求源点 s 的 0/1 边权最短路；g 使用 1 下标，边记录为 {终点,0或1}。

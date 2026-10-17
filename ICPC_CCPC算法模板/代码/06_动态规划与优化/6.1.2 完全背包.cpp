@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 将可无限使用的重量 w、价值 v 的物品加入完全背包，原地更新 dp，容量正序。

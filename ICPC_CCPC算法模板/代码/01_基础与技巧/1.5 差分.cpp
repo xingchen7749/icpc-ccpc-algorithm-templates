@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 由 a[1..n] 构造 n+2 项的差分数组，忽略占位 a[0]；不修改 a。

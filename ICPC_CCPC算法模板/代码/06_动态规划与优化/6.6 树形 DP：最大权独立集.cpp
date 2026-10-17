@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 返回连通无向树的最大权独立集权值和，允许不选任何点；全负权时返回 0。

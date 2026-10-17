@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 计算减法游戏状态 0..N 的 SG 值；moves 是每步可取走数量的无占位列表。

@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // AC（Aho–Corasick）：多模式字符串匹配自动机，以两位提出者的姓氏命名。

@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 在开区间 (l,r) 中寻找第一个使 ok(x) 为真的值，不存在则返回初始 r。

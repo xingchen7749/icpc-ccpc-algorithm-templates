@@ -17,6 +17,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 void solve() {
@@ -30,7 +31,7 @@ signed main() {
     while (T--) solve();
 }
 ''',
-    'GNU 编译示例：g++ -std=c++17 -O2 main.cpp -o main。调试时可增加 -Wall -Wextra -D_GLIBCXX_DEBUG。')
+    r"起手式统一定义 #define endl '\n'，cout << ans << endl; 仅换行而不强制刷新；不要写 std::endl。交互题使用 cout << ans << endl << flush; 显式刷新。GNU 编译示例：g++ -std=c++17 -O2 main.cpp -o main。调试时可增加 -Wall -Wextra -D_GLIBCXX_DEBUG。")
 
 add('基础与技巧',
     'binary',
@@ -1000,6 +1001,43 @@ struct ImplicitTreap {
 };
 ''',
     '依次 append(1),append(2),append(3)，reverse(1,2) 后 values() 为 {0,2,1,3}。')
+
+add('基础与技巧',
+    'quick_sort',
+    '快速排序',
+    '将整数数组 a 的闭区间 [l,r] 原地按升序排序；数组采用 1 下标，a[0] 占位。排序整个数组调用 quick_sort(a,1,n)。',
+    '平均时间 O(n log n)，最坏 O(n²)；递归栈平均 O(log n)，最坏 O(n)。',
+    '非稳定排序。固定选择中间位置的元素作为基准，特殊构造可能退化；保存基准值，不能引用交换过程中会改变的数组元素。递归区间为 [l,j] 和 [j+1,r]。l>=r 时直接返回，允许用 [1,0] 表示空数组。其他算法的排序继续使用标准库 sort。',
+    r'''
+// 将 a[l..r] 原地按升序排序，无返回值；调用时保证区间下标合法。
+// 数组采用 1 下标，a[0] 占位；l>=r 时不操作。
+// 平均时间 O(n log n)，最坏 O(n²)；递归栈平均 O(log n)，最坏 O(n)。
+void quick_sort(vector<int>& a, int l, int r) {
+    if (l >= r) return;
+
+    int i = l - 1, j = r + 1;
+    int pivot = a[l + (r - l) / 2];  // 保存基准值，避免交换后基准改变。
+
+    while (i < j) {
+        do {
+            i++;
+        } while (a[i] < pivot);
+
+        do {
+            j--;
+        } while (a[j] > pivot);
+
+        if (i < j) {
+            swap(a[i], a[j]);
+        }
+    }
+
+    // 分区后，左区间元素不大于基准，右区间元素不小于基准。
+    quick_sort(a, l, j);
+    quick_sort(a, j + 1, r);
+}
+''',
+    'vector<int> a = {0,3,1,2,1}; quick_sort(a,1,4); 得到 {0,1,1,2,3}。也可只排序合法子区间，区间外元素保持不变。')
 
 add('数据结构',
     'binary_trie',

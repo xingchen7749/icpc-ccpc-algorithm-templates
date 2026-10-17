@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 返回字典序最小循环移位的 0 下标起点；多个最优起点取最小者，空串返回 0。

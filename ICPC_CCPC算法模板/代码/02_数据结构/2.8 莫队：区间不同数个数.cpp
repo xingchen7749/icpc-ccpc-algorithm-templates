@@ -3,6 +3,7 @@ using namespace std;
 using i64 = long long;
 using i128 = __int128_t;
 using u64 = unsigned long long;
+#define endl '\n'
 // #define int long long
 
 // 离线统计 ranges 中各闭区间的不同值个数，答案按查询输入顺序返回，不带占位。
